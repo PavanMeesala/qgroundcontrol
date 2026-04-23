@@ -224,6 +224,32 @@ void Vehicle::stopTrackingFirmwareVehicleTypeChanges(void)
     disconnect(SettingsManager::instance()->appSettings()->offlineEditingVehicleClass(),  &Fact::rawValueChanged, this, &Vehicle::_offlineVehicleTypeSettingChanged);
 }
 
+void Vehicle::deployLifebuoy(bool deploy)
+{
+    uint16_t pwm = deploy ? 2000 : 1000;
+
+    mavlink_message_t msg;
+
+    mavlink_msg_rc_channels_override_pack(
+        255,   // system id
+        190,   // component id
+        &msg,
+        id(),                      // target system
+        MAV_COMP_ID_AUTOPILOT1,    // target component
+
+        // RC1–RC8
+        0, 0, 0, 0, 0, 0, 0, 0,
+
+        // RC9–RC16
+        pwm, pwm, pwm, 0, 0, 0, 0, 0,
+
+        // RC17–RC18
+        0, 0
+    );
+
+    sendMessageMultiple(msg);
+}
+
 void Vehicle::_commonInit(LinkInterface* link)
 {
     _firmwarePlugin = FirmwarePluginManager::instance()->firmwarePluginForAutopilot(_firmwareType, _vehicleType);

@@ -177,7 +177,7 @@ endif()
 
 set(QT_NO_PRIVATE_MODULE_WARNING ON)
 
-find_package(Qt6 ${QGC_QT_MINIMUM_VERSION} QUIET COMPONENTS Core)
+find_package(Qt6 6.10.3 QUIET COMPONENTS Core)
 if(NOT Qt6_FOUND)
     message(FATAL_ERROR
         "Qt6 ${QGC_QT_MINIMUM_VERSION}+ not found.\n"
@@ -189,7 +189,7 @@ if(NOT Qt6_FOUND)
 endif()
 
 find_package(Qt6
-    ${QGC_QT_MINIMUM_VERSION}...${QGC_QT_MAXIMUM_VERSION}
+    6.10.3
     REQUIRED
     COMPONENTS
         Charts

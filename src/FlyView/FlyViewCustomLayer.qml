@@ -38,4 +38,49 @@ Item {
         bottomEdgeCenterInset:  parentToolInsets.bottomEdgeCenterInset
         bottomEdgeRightInset:   parentToolInsets.bottomEdgeRightInset
     }
+    Rectangle {
+        id: deployButton
+
+        width: 160
+        height: 50
+        radius: 8
+
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: 20
+
+        property bool deployed: false
+
+        color: deployed ? "#2ecc71" : "#e74c3c"   // green / red
+        border.color: "black"
+        border.width: 1
+
+        Text {
+            id: label
+            anchors.centerIn: parent
+
+            text: deployButton.deployed ? "RETRACT" : "DEPLOY"
+            color: "white"
+            font.pixelSize: 18
+            font.bold: true
+
+            // 🔥 ensures visibility on any background
+            style: Text.Outline
+            styleColor: "black"
+        }
+
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked: {
+                deployButton.deployed = !deployButton.deployed
+
+                if (QGroundControl.multiVehicleManager.activeVehicle) {
+                    QGroundControl.multiVehicleManager
+                        .activeVehicle
+                        .deployLifebuoy(deployButton.deployed)
+                }
+            }
+        }
+    }
 }

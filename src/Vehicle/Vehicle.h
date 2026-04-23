@@ -275,6 +275,9 @@ public:
     /// Command vehicle to return to launch
     Q_INVOKABLE void guidedModeRTL(bool smartRTL);
 
+    // Command to Deploy the lifebuboy
+    Q_INVOKABLE void deployLifebuoy(bool deploy);
+
     /// Command vehicle to land at current location
     Q_INVOKABLE void guidedModeLand();
 
@@ -1303,7 +1306,7 @@ private:
 
 public:
     HealthAndArmingCheckReport* healthAndArmingCheckReport();
-    
+
     void setEventsMetadata(uint8_t compid, const QString& metadataJsonFileName);
 
 private:
