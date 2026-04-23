@@ -79,17 +79,17 @@ QGCApplication::QGCApplication(int &argc, char *argv[], const QGCCommandLinePars
         // name. Also we want to run unit tests with clean settings every time.
         // Include test name or PID to prevent settings file conflicts when tests run in parallel
         if (!cli.unitTests.isEmpty()) {
-            applicationName = QStringLiteral("%1_unittest_%2").arg(QGC_APP_NAME, cli.unitTests.first());
+            applicationName = QStringLiteral("%1_unittest_%2").arg("AethOS", cli.unitTests.first());
         } else {
-            applicationName = QStringLiteral("%1_unittest_%2").arg(QGC_APP_NAME).arg(QCoreApplication::applicationPid());
+            applicationName = QStringLiteral("%1_unittest_%2").arg("AethOS").arg(QCoreApplication::applicationPid());
         }
     } else {
 #ifdef QGC_DAILY_BUILD
         // This gives daily builds their own separate settings space. Allowing you to use daily and stable builds
         // side by side without daily screwing up your stable settings.
-        applicationName = QStringLiteral("%1 Daily").arg(QGC_APP_NAME);
+        applicationName = QStringLiteral("%1").arg("AethOS");
 #else
-        applicationName = QGC_APP_NAME;
+        applicationName = "AethOS";
 #endif
     }
     setApplicationName(applicationName);

@@ -51,6 +51,9 @@ Item {
 
         property bool deployed: false
 
+        visible: QGroundControl.multiVehicleManager.activeVehicle !== null
+
+
         color: deployed ? "#2ecc71" : "#e74c3c"   // green / red
         border.color: "black"
         border.width: 1
