@@ -21,6 +21,7 @@ qt_add_qml_module(FlyViewModule
         FlightDisplayViewUVC.qml
         FlightDisplayViewVideo.qml
         FlyView.qml
+        CustomFunctions.qml
         FlyViewAdditionalActionsButton.qml
         FlyViewAdditionalActionsList.qml
         FlyViewAdditionalActionsPanel.qml

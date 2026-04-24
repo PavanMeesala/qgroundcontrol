@@ -224,30 +224,90 @@ void Vehicle::stopTrackingFirmwareVehicleTypeChanges(void)
     disconnect(SettingsManager::instance()->appSettings()->offlineEditingVehicleClass(),  &Fact::rawValueChanged, this, &Vehicle::_offlineVehicleTypeSettingChanged);
 }
 
+#include "Vehicle.h"
+
+#include "MAVLinkProtocol.h"
+#include "LinkInterface.h"
+#include "ParameterManager.h"
+#include "Fact.h"
+
+#include <QDebug>
+
+
+// ✅ Send MAV_CMD_DO_SET_SERVO
+void Vehicle::_sendServoCommand(int servo, int pwm)
+{
+    sendMavCommand(
+        defaultComponentId(),                // target component
+        MAV_CMD_DO_SET_SERVO,              // command
+        true,                              // show error
+        servo,                             // param1 → servo number
+        pwm,                               // param2 → PWM
+        0, 0, 0, 0, 0                      // unused
+    );
+}
+
+// ✅ Deploy / Retract
 void Vehicle::deployLifebuoy(bool deploy)
 {
-    uint16_t pwm = deploy ? 2000 : 1000;
+    int pwm = deploy ? _deployPWM : _retractPWM;
 
-    mavlink_message_t msg;
+    _sendServoCommand(_servo1, pwm);
+    _sendServoCommand(_servo2, pwm);
+    _sendServoCommand(_servo3, pwm);
+}
 
-    mavlink_msg_rc_channels_override_pack(
-        255,   // system id
-        190,   // component id
-        &msg,
-        id(),                      // target system
-        MAV_COMP_ID_AUTOPILOT1,    // target component
 
-        // RC1–RC8
-        0, 0, 0, 0, 0, 0, 0, 0,
+// ✅ Set params into ArduPilot
+void Vehicle::setServoSettings(int aux1, int aux2, int aux3, int deployPwm, int retractPwm)
+{
+    _servo1 = aux1;
+    _servo2 = aux2;
+    _servo3 = aux3;
 
-        // RC9–RC16
-        pwm, pwm, pwm, 0, 0, 0, 0, 0,
+    _deployPWM = deployPwm;
+    _retractPWM = retractPwm;
 
-        // RC17–RC18
-        0, 0
-    );
+    // Assign servo outputs (function = 1 → RC passthrough / generic)
+    _setParam(QString("SERVO%1_FUNCTION").arg(aux1), 1);
+    _setParam(QString("SERVO%1_FUNCTION").arg(aux2), 1);
+    _setParam(QString("SERVO%1_FUNCTION").arg(aux3), 1);
 
-    sendMessageMultiple(msg);
+    // Store PWM limits
+    _setParam(QString("SERVO%1_MAX").arg(aux1), deployPwm);
+    _setParam(QString("SERVO%1_MIN").arg(aux1), retractPwm);
+
+    _setParam(QString("SERVO%1_MAX").arg(aux2), deployPwm);
+    _setParam(QString("SERVO%1_MIN").arg(aux2), retractPwm);
+
+    _setParam(QString("SERVO%1_MAX").arg(aux3), deployPwm);
+    _setParam(QString("SERVO%1_MIN").arg(aux3), retractPwm);
+}
+
+
+// ✅ Write parameter
+void Vehicle::_setParam(const QString& name, float value)
+{
+    if (!parameterManager()) return;
+
+    Fact* fact = parameterManager()->getParameter(defaultComponentId(), name);
+    if (fact) {
+        fact->setRawValue(value);
+    }
+}
+
+
+// ✅ Read parameter
+int Vehicle::_getParamInt(const QString& name, int defaultVal)
+{
+    if (!parameterManager()) return defaultVal;
+
+    Fact* fact = parameterManager()->getParameter(defaultComponentId(), name);
+    if (fact) {
+        return fact->rawValue().toInt();
+    }
+
+    return defaultVal;
 }
 
 void Vehicle::_commonInit(LinkInterface* link)

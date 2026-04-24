@@ -277,6 +277,7 @@ public:
 
     // Command to Deploy the lifebuboy
     Q_INVOKABLE void deployLifebuoy(bool deploy);
+    Q_INVOKABLE void setServoSettings(int aux1, int aux2, int aux3, int deployPWM, int retractPWM);
 
     /// Command vehicle to land at current location
     Q_INVOKABLE void guidedModeLand();
@@ -849,6 +850,28 @@ private slots:
     void _gotProgressUpdate                 (float progressValue);
 
 private:
+    int _servo1 = 9;
+    int _servo2 = 10;
+    int _servo3 = 11;
+
+    int _deployPWM = 1900;
+    int _retractPWM = 1100;
+    // 🔧 Clean config struct (NO Q_OBJECT)
+    struct ServoConfig {
+        int aux1 = 9;
+        int aux2 = 10;
+        int aux3 = 11;
+        int deployPWM = 1900;
+        int retractPWM = 1100;
+    };
+
+    ServoConfig _servoConfig;
+
+    // Parameter helpers
+    void _sendServoCommand(int servo, int pwm);
+    void _setParam(const QString& name, float value);
+    int _getParamInt(const QString& name, int defaultVal);
+
     void _activeVehicleChanged          (Vehicle* newActiveVehicle);
     void _handlePing                    (LinkInterface* link, mavlink_message_t& message);
     void _handleHomePosition            (mavlink_message_t& message);
