@@ -256,16 +256,37 @@ void Vehicle::_sendServoCommand(int servo, int pwm)
     sendMessageMultiple(msg);
 }
 
-// ✅ Deploy / Retract
+#include "MAVLinkProtocol.h"
+
 void Vehicle::deployLifebuoy(bool deploy)
 {
     int pwm = deploy ? _deployPWM : _retractPWM;
 
-    _sendServoCommand(_servo1, pwm);
-    _sendServoCommand(_servo2, pwm);
-    _sendServoCommand(_servo3, pwm);
-}
+    mavlink_message_t msg;
 
+    mavlink_msg_rc_channels_override_pack(
+        MAVLinkProtocol::instance()->getSystemId(),
+        MAVLinkProtocol::instance()->getComponentId(),
+        &msg,
+        id(),
+        defaultComponentId(),
+
+        // Channels 1–8
+        0, 0, 0, 0, 0, 0, 0, 0,
+
+        // Channels 9–16
+        pwm,  // ch9
+        pwm,  // ch10
+        pwm,  // ch11
+        0, 0, 0, 0, 0,
+
+        // Channels 17–18
+        0, 0
+    );
+
+    // ✅ QGC-safe send
+    sendMessageMultiple(msg);
+}
 
 // ✅ Set params into ArduPilot
 void Vehicle::setServoSettings(int aux1, int aux2, int aux3, int deployPwm, int retractPwm)
