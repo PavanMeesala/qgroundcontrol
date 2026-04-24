@@ -237,14 +237,23 @@ void Vehicle::stopTrackingFirmwareVehicleTypeChanges(void)
 // ✅ Send MAV_CMD_DO_SET_SERVO
 void Vehicle::_sendServoCommand(int servo, int pwm)
 {
-    sendMavCommand(
-        defaultComponentId(),                // target component
-        MAV_CMD_DO_SET_SERVO,              // command
-        true,                              // show error
-        servo,                             // param1 → servo number
-        pwm,                               // param2 → PWM
-        0, 0, 0, 0, 0                      // unused
+    mavlink_message_t msg;
+
+    mavlink_msg_command_long_pack(
+        0,                          // ✅ GCS system id (safe)
+        0,                          // ✅ GCS component id (safe)
+        &msg,
+        id(),                       // target system (vehicle)
+        defaultComponentId(),       // ✅ IMPORTANT: function call
+        MAV_CMD_DO_SET_SERVO,
+        0,
+        servo,
+        pwm,
+        0, 0, 0, 0, 0
     );
+
+    // 🔥 bypass command queue (NO ACK WAIT)
+    sendMessageMultiple(msg);
 }
 
 // ✅ Deploy / Retract
