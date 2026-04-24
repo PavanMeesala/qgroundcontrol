@@ -136,7 +136,7 @@ Item {
             deployButton.deployed = false
         }
     }
-     Popup {
+    Popup {
         id: settingsPopup
         width: 380
         height: 360
@@ -148,41 +148,44 @@ Item {
             color: "#2c3e50"
             radius: 10
         }
+
         onOpened: {
-            aux1.text = "1"
-            aux2.text = "2"
-            aux3.text = "3"
-            deployPWM.text = "1900"
-            retractPWM.text = "1100"
+            servo1Field.text = ""
+            servo2Field.text = ""
+            servo3Field.text = ""
+            deployField.text = ""
+            retractField.text = ""
         }
+
         Column {
             anchors.fill: parent
             anchors.margins: 16
             spacing: 14
 
             // 🔷 Header Row
-            Row {
+            Item {
                 width: parent.width
-                spacing: 10
+                height: 30
 
                 Text {
                     text: "Settings"
                     color: "white"
                     font.pixelSize: 20
                     font.bold: true
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                 }
 
-                Item { width: 10 }
-
                 Rectangle {
-                    anchors.top: settingsPopup.top
-                    anchors.right: settingsPopup.right
                     width: 70
                     height: 28
                     radius: 6
                     color: "transparent"
                     border.color: "#e74c3c"
                     border.width: 1
+
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
 
                     Text {
                         anchors.centerIn: parent
@@ -200,170 +203,173 @@ Item {
             }
 
             // 🔷 Form Area
-
             Column {
                 width: parent.width
                 spacing: 10
 
-                // Servo 1
                 Row {
                     spacing: 10
-
-                    Text {
-                        text: "Servo 1 (AUX)"
-                        color: "white"
-                        width: 140
-                    }
+                    Text { text: "Servo 1 (AUX)"; color: "white"; width: 140 }
 
                     Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
-                        TextInput {
+                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
+                    TextInput {
                             id: servo1Field
                             anchors.fill: parent
                             anchors.margins: 6
                             color: "black"
                         }
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: 6
+                            text: servo1Field.text === "" ? "e.g. 1" : ""
+                            color: "#7f8c8d"
+                            font.pixelSize: 13
+                        }
                     }
                 }
 
-                // Servo 2
                 Row {
                     spacing: 10
-
-                    Text {
-                        text: "Servo 2 (AUX)"
-                        color: "white"
-                        width: 140
-                    }
+                    Text { text: "Servo 2 (AUX)"; color: "white"; width: 140 }
 
                     Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
+                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
                         TextInput {
                             id: servo2Field
                             anchors.fill: parent
                             anchors.margins: 6
                             color: "black"
                         }
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: 6
+                            text: servo2Field.text === "" ? "e.g. 1" : ""
+                            color: "#7f8c8d"
+                            font.pixelSize: 13
+                        }
                     }
                 }
 
-                // Servo 3
                 Row {
                     spacing: 10
-
-                    Text {
-                        text: "Servo 3 (AUX)"
-                        color: "white"
-                        width: 140
-                    }
+                    Text { text: "Servo 3 (AUX)"; color: "white"; width: 140 }
 
                     Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
+                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
                         TextInput {
                             id: servo3Field
                             anchors.fill: parent
                             anchors.margins: 6
                             color: "black"
                         }
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: 6
+                            text: servo3Field.text === "" ? "e.g. 1" : ""
+                            color: "#7f8c8d"
+                            font.pixelSize: 13
+                        }
                     }
                 }
 
-                // Deploy PWM
                 Row {
                     spacing: 10
-
-                    Text {
-                        text: "Deploy PWM"
-                        color: "white"
-                        width: 140
-                    }
+                    Text { text: "Deploy PWM"; color: "white"; width: 140 }
 
                     Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
+                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
                         TextInput {
                             id: deployField
                             anchors.fill: parent
                             anchors.margins: 6
                             color: "black"
                         }
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: 6
+                            text: deployField.text === "" ? "e.g. 1900" : ""
+                            color: "#7f8c8d"
+                            font.pixelSize: 13
+                        }
                     }
                 }
 
-                // Retract PWM
                 Row {
                     spacing: 10
-
-                    Text {
-                        text: "Retract PWM"
-                        color: "white"
-                        width: 140
-                    }
+                    Text { text: "Retract PWM"; color: "white"; width: 140 }
 
                     Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
+                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
                         TextInput {
                             id: retractField
                             anchors.fill: parent
                             anchors.margins: 6
                             color: "black"
                         }
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: 6
+                            text: retractField.text === "" ? "e.g. 1100" : ""
+                            color: "#7f8c8d"
+                            font.pixelSize: 13
+                        }
+
                     }
                 }
             }
 
             Item { height: 10 }
 
-            // 🔷 Save Button (FIXED POSITION)
-            Rectangle {
-                width: 100
-                height: 36
-                radius: 6
-                color: "transparent"
-                border.color: "#2ecc71"
-                border.width: 1
+            // 🔷 Save Button aligned RIGHT
+            Item {
+                width: parent.width
+                height: 30
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "Save"
-                    color: "#2ecc71"
-                    font.pixelSize: 14
-                    font.bold: true
-                }
+                Rectangle {
+                    width: 70
+                    height: 28
+                    radius: 6
+                    color: "transparent"
+                    border.color: "#2ecc71"
+                    border.width: 1
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (QGroundControl.multiVehicleManager.activeVehicle) {
-                            QGroundControl.multiVehicleManager.activeVehicle
-                                .setServoSettings(
-                                    parseInt(servo1Field.text),
-                                    parseInt(servo2Field.text),
-                                    parseInt(servo3Field.text),
-                                    parseInt(deployField.text),
-                                    parseInt(retractField.text)
-                                )
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Save"
+                        color: "#2ecc71"
+                        font.pixelSize: 14
+                        font.bold: true
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (QGroundControl.multiVehicleManager.activeVehicle) {
+                                QGroundControl.multiVehicleManager.activeVehicle
+                                    .setServoSettings(
+                                        parseInt(servo1Field.text),
+                                        parseInt(servo2Field.text),
+                                        parseInt(servo3Field.text),
+                                        parseInt(deployField.text),
+                                        parseInt(retractField.text)
+                                    )
+                            }
+                            settingsPopup.close()
                         }
-                        settingsPopup.close()
                     }
                 }
             }
