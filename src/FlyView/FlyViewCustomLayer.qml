@@ -18,6 +18,10 @@ import QGroundControl.FlightMap
 // FlyViewCustomLayer.qml resource with your own qml. See the custom example and documentation for details.
 Item {
     id: _root
+    // Lifebuoy Control Panel - Custom Overlay Example
+    property var vehicle: QGroundControl.multiVehicleManager.activeVehicle
+    property int compId: vehicle ? vehicle.defaultComponentId() : -1
+    property bool paramsReady: vehicle && vehicle.parameterManager && vehicle.parameterManager.parametersReady
 
     property var parentToolInsets               // These insets tell you what screen real estate is available for positioning the controls in your overlay
     property var totalToolInsets:   _toolInsets // These are the insets for your custom overlay additions
@@ -136,9 +140,19 @@ Item {
                 fillMode: Image.PreserveAspectFit
             }
 
+            opacity: paramsReady ? 1.0 : 0.4
+
             MouseArea {
                 anchors.fill: parent
-                onClicked: settingsPopup.open()
+                enabled: paramsReady
+
+                onClicked: {
+                    if (paramsReady) {
+                        settingsPopup.open()
+                    } else {
+                        console.log("⏳ Params not loaded yet")
+                    }
+                }
             }
         }
         // ===============================
@@ -155,6 +169,9 @@ Item {
     }
     Popup {
         id: settingsPopup
+        property var servo9Func
+        property var servo10Func
+        property var servo11Func
         width: 380
         height: 360
         modal: true
@@ -167,9 +184,18 @@ Item {
         }
 
         onOpened: {
-            servo1Field.text = ""
-            servo2Field.text = ""
-            servo3Field.text = ""
+            if (!vehicle) return
+
+            var c = vehicle.defaultComponentId()
+
+            var s9 = vehicle.getParameterFact(c, "SERVO9_FUNCTION")
+            var s10 = vehicle.getParameterFact(c, "SERVO10_FUNCTION")
+            var s11 = vehicle.getParameterFact(c, "SERVO11_FUNCTION")
+
+            servo1Field.text = s9 ? s9.value : ""
+            servo2Field.text = s10 ? s10.value : ""
+            servo3Field.text = s11 ? s11.value : ""
+
             deployField.text = ""
             retractField.text = ""
         }
@@ -241,7 +267,13 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 6
-                            text: servo1Field.text === "" ? "current: 8" : ""
+                            // text: servo1Field.text === "" ? "current: 8" : ""
+                            text: {
+                                if (!vehicle) return ""
+
+                                var fact = vehicle.getParameterFact(vehicle.defaultComponentId(), "SERVO9_FUNCTION")
+                                return (servo1Field.text === "" && fact) ? "current: " + fact.value : ""
+                            }
                             color: "#7f8c8d"
                             font.pixelSize: 13
                         }
@@ -265,7 +297,12 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 6
-                            text: servo2Field.text === "" ? "current: 9" : ""
+                            text: {
+                                if (!vehicle) return ""
+
+                                var fact = vehicle.getParameterFact(vehicle.defaultComponentId(), "SERVO10_FUNCTION")
+                                return (servo2Field.text === "" && fact) ? "current: " + fact.value : ""
+                            }
                             color: "#7f8c8d"
                             font.pixelSize: 13
                         }
@@ -289,7 +326,12 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 6
-                            text: servo3Field.text === "" ? "current: 10" : ""
+                            text: {
+                                if (!vehicle) return ""
+
+                                var fact = vehicle.getParameterFact(vehicle.defaultComponentId(), "SERVO11_FUNCTION")
+                                return (servo3Field.text === "" && fact) ? "current: " + fact.value : ""
+                            }
                             color: "#7f8c8d"
                             font.pixelSize: 13
                         }
