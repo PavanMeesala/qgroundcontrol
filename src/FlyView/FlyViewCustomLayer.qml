@@ -224,7 +224,7 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 6
-                            text: servo1Field.text === "" ? "e.g. 1" : ""
+                            text: servo1Field.text === "" ? "current: 8" : ""
                             color: "#7f8c8d"
                             font.pixelSize: 13
                         }
@@ -248,7 +248,7 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 6
-                            text: servo2Field.text === "" ? "e.g. 1" : ""
+                            text: servo2Field.text === "" ? "current: 9" : ""
                             color: "#7f8c8d"
                             font.pixelSize: 13
                         }
@@ -272,7 +272,7 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 6
-                            text: servo3Field.text === "" ? "e.g. 1" : ""
+                            text: servo3Field.text === "" ? "current: 10" : ""
                             color: "#7f8c8d"
                             font.pixelSize: 13
                         }

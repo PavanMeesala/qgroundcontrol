@@ -256,37 +256,51 @@ void Vehicle::_sendServoCommand(int servo, int pwm)
     sendMessageMultiple(msg);
 }
 
-#include "MAVLinkProtocol.h"
+// void Vehicle::deployLifebuoy(bool deploy)
+// {
+//     int pwm = deploy ? _deployPWM : _retractPWM;
 
+//     uint16_t ch[18] = {0};
+
+//     // 🔥 Map selected servos dynamically
+//     if (_servo1 >= 1 && _servo1 <= 18)
+//         ch[_servo1 - 1] = pwm;
+
+//     if (_servo2 >= 1 && _servo2 <= 18)
+//         ch[_servo2 - 1] = pwm;
+
+//     if (_servo3 >= 1 && _servo3 <= 18)
+//         ch[_servo3 - 1] = pwm;
+
+//     mavlink_message_t msg;
+
+//     mavlink_msg_rc_channels_override_pack(
+//         MAVLinkProtocol::instance()->getSystemId(),
+//         MAVLinkProtocol::instance()->getComponentId(),
+//         &msg,
+//         id(),
+//         defaultComponentId(),
+
+//         ch[0], ch[1], ch[2], ch[3],
+//         ch[4], ch[5], ch[6], ch[7],
+//         ch[8], ch[9], ch[10], ch[11],
+//         ch[12], ch[13], ch[14], ch[15],
+//         ch[16], ch[17]
+//     );
+
+//     sendMessageMultiple(msg);
+// }
+
+// ✅ Deploy / Retract
 void Vehicle::deployLifebuoy(bool deploy)
 {
     int pwm = deploy ? _deployPWM : _retractPWM;
 
-    mavlink_message_t msg;
-
-    mavlink_msg_rc_channels_override_pack(
-        MAVLinkProtocol::instance()->getSystemId(),
-        MAVLinkProtocol::instance()->getComponentId(),
-        &msg,
-        id(),
-        defaultComponentId(),
-
-        // Channels 1–8
-        0, 0, 0, 0, 0, 0, 0, 0,
-
-        // Channels 9–16
-        pwm,  // ch9
-        pwm,  // ch10
-        pwm,  // ch11
-        0, 0, 0, 0, 0,
-
-        // Channels 17–18
-        0, 0
-    );
-
-    // ✅ QGC-safe send
-    sendMessageMultiple(msg);
+    _sendServoCommand(_servo1, pwm);
+    _sendServoCommand(_servo2, pwm);
+    _sendServoCommand(_servo3, pwm);
 }
+
 
 // ✅ Set params into ArduPilot
 void Vehicle::setServoSettings(int aux1, int aux2, int aux3, int deployPwm, int retractPwm)
