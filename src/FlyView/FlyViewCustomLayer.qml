@@ -39,102 +39,119 @@ Item {
         bottomEdgeCenterInset:  parentToolInsets.bottomEdgeCenterInset
         bottomEdgeRightInset:   parentToolInsets.bottomEdgeRightInset
     }
-
-    // ================= DEPLOY BUTTON =================
     Rectangle {
-        id: deployButton
-
-        width: 170
-        height: 55
-        radius: 10
-
+        id: lifebuoyPanel
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: 20
 
+        width: 200
+        height: 170
+        color:Qt.rgba(0, 0, 0, 0.8)
         visible: QGroundControl.multiVehicleManager.activeVehicle !== null
+        QGCLabel {
+                text:      "Life Control"
+                font.bold: true
+                color:     "white"
+                anchors.top: parent.top
+                anchors.topMargin: 5
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        // ================= DEPLOY BUTTON =================
+        Rectangle {
+            id: deployButton
 
-        property bool deployed: false
+            width: 120
+            height: 40
+            radius: 10
 
-        color: deployed ? "#27ae60" : "#c0392b"
-        border.color: "#222"
-        border.width: 1
+            anchors.top: parent.top
+            anchors.topMargin: 30
+            anchors.horizontalCenter: parent.horizontalCenter
 
-        Behavior on color {
-            ColorAnimation { duration: 200 }
-        }
+            property bool deployed: false
 
-        Text {
-            anchors.centerIn: parent
+            color: deployed ? "#27ae60" : "#c0392b"
+            border.color: "#222"
+            border.width: 1
 
-            text: deployButton.deployed ? "RETRACT" : "DEPLOY"
+            Behavior on color {
+                ColorAnimation { duration: 200 }
+            }
 
-            font.pixelSize: 20
-            font.bold: true
+            Text {
+                anchors.centerIn: parent
 
-            // FORCE visibility in all themes
-            color: "white"
+                text: deployButton.deployed ? "RETRACT" : "DEPLOY"
 
-            // Strong outline (fixes invisibility issue)
-            style: Text.Outline
-            styleColor: "black"
+                font.pixelSize: 16
+                font.bold: true
 
-            // Extra trick (important)
-            renderType: Text.NativeRendering
-        }
+                // FORCE visibility in all themes
+                color: "white"
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                deployButton.deployed = !deployButton.deployed
+                // Strong outline (fixes invisibility issue)
+                style: Text.Outline
+                styleColor: "black"
 
-                if (QGroundControl.multiVehicleManager.activeVehicle) {
-                    QGroundControl.multiVehicleManager.activeVehicle
-                        .deployLifebuoy(deployButton.deployed)
+                // Extra trick (important)
+                renderType: Text.NativeRendering
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    deployButton.deployed = !deployButton.deployed
+
+                    if (QGroundControl.multiVehicleManager.activeVehicle) {
+                        QGroundControl.multiVehicleManager.activeVehicle
+                            .deployLifebuoy(deployButton.deployed)
+                    }
                 }
             }
         }
-    }
 
-    // ===============================
-    // ⚙ SETTINGS BUTTON
-    // ===============================
-    Rectangle {
-        id: settingsButton
-        width: 50
-        height: 50
-        radius: 25
+        // ===============================
+        // ⚙ SETTINGS BUTTON
+        // ===============================
+        Rectangle {
+            id: settingsButton
+            width: 50
+            height: 50
+            radius: 25
 
-        anchors.top: deployButton.bottom
-        anchors.right: parent.right
-        anchors.margins: 20
+            anchors.top: deployButton.bottom
+            anchors.topMargin: 10
+            anchors.horizontalCenter: parent.horizontalCenter
 
-        color: "transparent"   // clean background
+            color: "transparent"   // clean background
 
-        Image {
-            anchors.centerIn: parent
-            width: 30
-            height: 30
+            Image {
+                anchors.centerIn: parent
+                width: 30
+                height: 30
 
-            source: "qrc:/res/gear-white.svg"   // ✅ correct QGC resource path
+                source: "qrc:/res/gear-white.svg"   // ✅ correct QGC resource path
 
-            fillMode: Image.PreserveAspectFit
+                fillMode: Image.PreserveAspectFit
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: settingsPopup.open()
+            }
+        }
+        // ===============================
+        // ⚙ SETTINGS POPUP
+        // ===============================
+        Connections {
+            target: QGroundControl.multiVehicleManager
+
+            function onActiveVehicleChanged() {
+                deployButton.deployed = false
+            }
         }
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked: settingsPopup.open()
-        }
-    }
-    // ===============================
-    // ⚙ SETTINGS POPUP
-    // ===============================
-    Connections {
-        target: QGroundControl.multiVehicleManager
-
-        function onActiveVehicleChanged() {
-            deployButton.deployed = false
-        }
     }
     Popup {
         id: settingsPopup
