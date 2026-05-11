@@ -20,12 +20,14 @@ Item {
     id: _root
     // Lifebuoy Control Panel - Custom Overlay Example
     property var vehicle: QGroundControl.multiVehicleManager.activeVehicle
-    property int compId: vehicle ? vehicle.defaultComponentId() : -1
-    property bool paramsReady: vehicle && vehicle.parameterManager && vehicle.parameterManager.parametersReady
+    property int compId: vehicle ? vehicle.defaultComponentId : -1
 
     property var parentToolInsets               // These insets tell you what screen real estate is available for positioning the controls in your overlay
     property var totalToolInsets:   _toolInsets // These are the insets for your custom overlay additions
     property var mapControl
+
+    property bool paramsReady: vehicle !== null
+                           && vehicle.parameterManager !== null
 
     // since this file is a placeholder for the custom layer in a standard build, we will just pass through the parent insets
     QGCToolInsets {
@@ -172,9 +174,7 @@ Item {
     }
     Popup {
         id: settingsPopup
-        property var servo9Func
-        property var servo10Func
-        property var servo11Func
+
         width: 380
         height: 360
         modal: true
@@ -187,18 +187,17 @@ Item {
         }
 
         onOpened: {
-            if (!vehicle) return
 
-            var c = vehicle.defaultComponentId()
+            servo1Field.text =
+                vehicle.getParamInt("SERVO9_FUNCTION", 59) === 59 ? "9" : ""
 
-            var s9 = vehicle.getParameterFact(c, "SERVO9_FUNCTION")
-            var s10 = vehicle.getParameterFact(c, "SERVO10_FUNCTION")
-            var s11 = vehicle.getParameterFact(c, "SERVO11_FUNCTION")
+            servo2Field.text =
+                vehicle.getParamInt("SERVO10_FUNCTION", 59) === 59 ? "10" : ""
 
-            servo1Field.text = s9 ? s9.value : ""
-            servo2Field.text = s10 ? s10.value : ""
-            servo3Field.text = s11 ? s11.value : ""
+            servo3Field.text =
+                vehicle.getParamInt("SERVO11_FUNCTION", 59) === 59 ? "11" : ""
 
+            // IMPORTANT
             deployField.text = ""
             retractField.text = ""
         }
@@ -255,138 +254,176 @@ Item {
 
                 Row {
                     spacing: 10
-                    Text { text: "Servo 1 (AUX)"; color: "white"; width: 140 }
+
+                    Text {
+                        text: "Servo 1 (AUX)"
+                        color: "white"
+                        width: 140
+                    }
 
                     Rectangle {
-                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
-                    TextInput {
-                            id: servo1Field
+                        width: 180
+                        height: 32
+                        radius: 6
+                        color: "#ecf0f1"
+
+                        TextField {
+                            id: servo01Field
                             anchors.fill: parent
-                            anchors.margins: 6
+                            anchors.margins: 2
+
                             color: "black"
-                        }
+                            font.pixelSize: 14
 
-                        Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.margins: 6
-                            // text: servo1Field.text === "" ? "current: 8" : ""
-                            text: {
-                                if (!vehicle) return ""
+                            placeholderText: "e.g. 9"
+                            placeholderTextColor: "#7f8c8d"
 
-                                var fact = vehicle.getParameterFact(vehicle.defaultComponentId(), "SERVO9_FUNCTION")
-                                return (servo1Field.text === "" && fact) ? "current: " + fact.value : ""
+                            background: Rectangle {
+                                radius: 6
+                                color: "#ecf0f1"
+                                border.color: "#bdc3c7"
                             }
-                            color: "#7f8c8d"
-                            font.pixelSize: 13
                         }
                     }
                 }
 
                 Row {
                     spacing: 10
-                    Text { text: "Servo 2 (AUX)"; color: "white"; width: 140 }
+
+                    Text {
+                        text: "Servo 2 (AUX)"
+                        color: "white"
+                        width: 140
+                    }
 
                     Rectangle {
-                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
-                        TextInput {
-                            id: servo2Field
+                        width: 180
+                        height: 32
+                        radius: 6
+                        color: "#ecf0f1"
+
+                        TextField {
+                            id: servo02Field
                             anchors.fill: parent
-                            anchors.margins: 6
+                            anchors.margins: 2
+
                             color: "black"
-                        }
+                            font.pixelSize: 14
 
-                        Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.margins: 6
-                            text: {
-                                if (!vehicle) return ""
+                            placeholderText: "e.g. 10"
+                            placeholderTextColor: "#7f8c8d"
 
-                                var fact = vehicle.getParameterFact(vehicle.defaultComponentId(), "SERVO10_FUNCTION")
-                                return (servo2Field.text === "" && fact) ? "current: " + fact.value : ""
+                            background: Rectangle {
+                                radius: 6
+                                color: "#ecf0f1"
+                                border.color: "#bdc3c7"
                             }
-                            color: "#7f8c8d"
-                            font.pixelSize: 13
                         }
                     }
                 }
 
                 Row {
                     spacing: 10
-                    Text { text: "Servo 3 (AUX)"; color: "white"; width: 140 }
+
+                    Text {
+                        text: "Servo 3 (AUX)"
+                        color: "white"
+                        width: 140
+                    }
 
                     Rectangle {
-                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
-                        TextInput {
-                            id: servo3Field
+                        width: 180
+                        height: 32
+                        radius: 6
+                        color: "#ecf0f1"
+
+                        TextField {
+                            id: servo03Field
                             anchors.fill: parent
-                            anchors.margins: 6
+                            anchors.margins: 2
+
                             color: "black"
-                        }
+                            font.pixelSize: 14
 
-                        Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.margins: 6
-                            text: {
-                                if (!vehicle) return ""
+                            placeholderText: "e.g. 11"
+                            placeholderTextColor: "#7f8c8d"
 
-                                var fact = vehicle.getParameterFact(vehicle.defaultComponentId(), "SERVO11_FUNCTION")
-                                return (servo3Field.text === "" && fact) ? "current: " + fact.value : ""
+                            background: Rectangle {
+                                radius: 6
+                                color: "#ecf0f1"
+                                border.color: "#bdc3c7"
                             }
-                            color: "#7f8c8d"
-                            font.pixelSize: 13
                         }
+
                     }
                 }
 
                 Row {
                     spacing: 10
-                    Text { text: "Deploy PWM"; color: "white"; width: 140 }
+
+                    Text {
+                        text: "Deploy PWM"
+                        color: "white"
+                        width: 140
+                    }
 
                     Rectangle {
-                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
-                        TextInput {
+                        width: 180
+                        height: 32
+                        radius: 6
+                        color: "#ecf0f1"
+
+                        TextField {
                             id: deployField
                             anchors.fill: parent
-                            anchors.margins: 6
-                            color: "black"
-                        }
+                            anchors.margins: 2
 
-                        Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.margins: 6
-                            text: deployField.text === "" ? "e.g. 1900" : ""
-                            color: "#7f8c8d"
-                            font.pixelSize: 13
+                            color: "black"
+                            font.pixelSize: 14
+
+                            placeholderText: "e.g. 1900"
+                            placeholderTextColor: "#7f8c8d"
+                            background: Rectangle {
+                                radius: 6
+                                color: "#ecf0f1"
+                                border.color: "#bdc3c7"
+                            }
                         }
                     }
                 }
 
                 Row {
                     spacing: 10
-                    Text { text: "Retract PWM"; color: "white"; width: 140 }
+
+                    Text {
+                        text: "Retract PWM"
+                        color: "white"
+                        width: 140
+                    }
 
                     Rectangle {
-                        width: 180; height: 32; radius: 6; color: "#ecf0f1"
-                        TextInput {
+                        width: 180
+                        height: 32
+                        radius: 6
+                        color: "#ecf0f1"
+
+                        TextField {
                             id: retractField
                             anchors.fill: parent
-                            anchors.margins: 6
+                            anchors.margins: 2
+
                             color: "black"
-                        }
+                            font.pixelSize: 14
 
-                        Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.margins: 6
-                            text: retractField.text === "" ? "e.g. 1100" : ""
-                            color: "#7f8c8d"
-                            font.pixelSize: 13
-                        }
+                            placeholderText: "e.g. 1100"
+                            placeholderTextColor: "#7f8c8d"
 
+                            background: Rectangle {
+                                radius: 6
+                                color: "#ecf0f1"
+                                border.color: "#bdc3c7"
+                            }
+                        }
                     }
                 }
             }

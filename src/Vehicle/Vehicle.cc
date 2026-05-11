@@ -224,6 +224,9 @@ void Vehicle::stopTrackingFirmwareVehicleTypeChanges(void)
     disconnect(SettingsManager::instance()->appSettings()->offlineEditingVehicleClass(),  &Fact::rawValueChanged, this, &Vehicle::_offlineVehicleTypeSettingChanged);
 }
 
+// ------------------------------------------
+// Start of Lifebuoy control methods
+// ------------------------------------------
 #include "Vehicle.h"
 
 #include "MAVLinkProtocol.h"
@@ -240,22 +243,24 @@ void Vehicle::_sendServoCommand(int servo, int pwm)
     mavlink_message_t msg;
 
     mavlink_msg_command_long_pack(
-        0,                          // ✅ GCS system id (safe)
-        0,                          // ✅ GCS component id (safe)
+        255,                        // GCS sysid
+        0,                          // GCS compid
         &msg,
-        id(),                       // target system (vehicle)
-        defaultComponentId(),       // ✅ IMPORTANT: function call
+        id(),                       // target system
+        defaultComponentId(),       // target component
         MAV_CMD_DO_SET_SERVO,
         0,
-        servo,
-        pwm,
+        servo,                      // servo output number
+        pwm,                        // pwm value
         0, 0, 0, 0, 0
     );
 
-    // 🔥 bypass command queue (NO ACK WAIT)
-    sendMessageMultiple(msg);
-}
+    auto sharedLink = _vehicleLinkManager->primaryLink().lock();
 
+    if (sharedLink) {
+        sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    }
+}
 // void Vehicle::deployLifebuoy(bool deploy)
 // {
 //     int pwm = deploy ? _deployPWM : _retractPWM;
@@ -303,31 +308,34 @@ void Vehicle::deployLifebuoy(bool deploy)
 
 
 // ✅ Set params into ArduPilot
-void Vehicle::setServoSettings(int aux1, int aux2, int aux3, int deployPwm, int retractPwm)
+void Vehicle::setServoSettings(int servo1,
+                               int servo2,
+                               int servo3,
+                               int deployPwm,
+                               int retractPwm)
 {
-    _servo1 = aux1;
-    _servo2 = aux2;
-    _servo3 = aux3;
+    _servo1 = servo1;
+    _servo2 = servo2;
+    _servo3 = servo3;
 
     _deployPWM = deployPwm;
     _retractPWM = retractPwm;
 
-    // Assign servo outputs (function = 1 → RC passthrough / generic)
-    _setParam(QString("SERVO%1_FUNCTION").arg(aux1), 1);
-    _setParam(QString("SERVO%1_FUNCTION").arg(aux2), 1);
-    _setParam(QString("SERVO%1_FUNCTION").arg(aux3), 1);
+    // map all 3 servos to RC9IN
+    _setParam(QString("SERVO%1_FUNCTION").arg(_servo1), 59);
+    _setParam(QString("SERVO%1_FUNCTION").arg(_servo2), 59);
+    _setParam(QString("SERVO%1_FUNCTION").arg(_servo3), 59);
 
-    // Store PWM limits
-    _setParam(QString("SERVO%1_MAX").arg(aux1), deployPwm);
-    _setParam(QString("SERVO%1_MIN").arg(aux1), retractPwm);
+    // store pwm values
+    _setParam(QString("RC8_MAX"), deployPwm);
+    _setParam(QString("RC8_MIN"), retractPwm);
 
-    _setParam(QString("SERVO%1_MAX").arg(aux2), deployPwm);
-    _setParam(QString("SERVO%1_MIN").arg(aux2), retractPwm);
+    _setParam(QString("RC9_MAX"), deployPwm);
+    _setParam(QString("RC9_MIN"), retractPwm);
 
-    _setParam(QString("SERVO%1_MAX").arg(aux3), deployPwm);
-    _setParam(QString("SERVO%1_MIN").arg(aux3), retractPwm);
+    _setParam(QString("RC10_MAX"), deployPwm);
+    _setParam(QString("RC10_MIN"), retractPwm);
 }
-
 
 // ✅ Write parameter
 void Vehicle::_setParam(const QString& name, float value)
@@ -342,17 +350,24 @@ void Vehicle::_setParam(const QString& name, float value)
 
 
 // ✅ Read parameter
-int Vehicle::_getParamInt(const QString& name, int defaultVal)
+int Vehicle::getParamInt(QString param, int defaultValue)
 {
-    if (!parameterManager()) return defaultVal;
-
-    Fact* fact = parameterManager()->getParameter(defaultComponentId(), name);
-    if (fact) {
-        return fact->rawValue().toInt();
+    if (!parameterManager()) {
+        return defaultValue;
     }
 
-    return defaultVal;
+    Fact* fact = parameterManager()->getParameter(defaultComponentId(), param);
+
+    if (!fact) {
+        return defaultValue;
+    }
+
+    return fact->rawValue().toInt();
 }
+
+// ------------------------------------------
+// end of Lifebuoy control methods
+// ------------------------------------------
 
 void Vehicle::_commonInit(LinkInterface* link)
 {
