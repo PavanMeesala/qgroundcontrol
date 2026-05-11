@@ -49,12 +49,13 @@ Item {
         anchors.right: parent.right
         anchors.margins: 20
 
-        width: 200
-        height: 170
-        color:Qt.rgba(0, 0, 0, 0.8)
+        width: 160
+        height: 150
+        radius: 10
+        color:Qt.rgba(0, 0, 0, 0.11)
         visible: QGroundControl.multiVehicleManager.activeVehicle !== null
         QGCLabel {
-                text:      "Life Control"
+                text:      "Lifebuoy Control"
                 font.bold: true
                 color:     "white"
                 anchors.top: parent.top
@@ -65,9 +66,9 @@ Item {
         Rectangle {
             id: deployButton
 
-            width: 120
-            height: 40
-            radius: 10
+            width: 100
+            height: 30
+            radius: 8
 
             anchors.top: parent.top
             anchors.topMargin: 30
@@ -88,7 +89,7 @@ Item {
 
                 text: deployButton.deployed ? "RETRACT" : "DEPLOY"
 
-                font.pixelSize: 16
+                font.pixelSize: 12
                 font.bold: true
 
                 // FORCE visibility in all themes
