@@ -47,7 +47,9 @@ Item {
         id: lifebuoyPanel
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.margins: 20
+        anchors.leftMargin: 20  // Specific distance from left
+        anchors.topMargin:  60
+        // anchors.margins: 60 // make it 20 to move it to corner
 
         width: 160
         height: 150
