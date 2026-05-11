@@ -308,33 +308,48 @@ void Vehicle::deployLifebuoy(bool deploy)
 
 
 // ✅ Set params into ArduPilot
-void Vehicle::setServoSettings(int servo1,
-                               int servo2,
-                               int servo3,
+void Vehicle::setServoSettings(int aux1,
+                               int aux2,
+                               int aux3,
                                int deployPwm,
                                int retractPwm)
 {
-    _servo1 = servo1;
-    _servo2 = servo2;
-    _servo3 = servo3;
+    qDebug() << "Saving Servo Settings:"
+             << aux1
+             << aux2
+             << aux3
+             << deployPwm
+             << retractPwm;
 
-    _deployPWM = deployPwm;
+    _servo1 = aux1;
+    _servo2 = aux2;
+    _servo3 = aux3;
+
+    _deployPWM  = deployPwm;
     _retractPWM = retractPwm;
 
-    // map all 3 servos to RC9IN
-    _setParam(QString("SERVO%1_FUNCTION").arg(_servo1), 59);
-    _setParam(QString("SERVO%1_FUNCTION").arg(_servo2), 59);
-    _setParam(QString("SERVO%1_FUNCTION").arg(_servo3), 59);
+    // -----------------------------
+    // Servo 1
+    // -----------------------------
+    _setParam(QString("SERVO%1_FUNCTION").arg(aux1), 0);
+    _setParam(QString("SERVO%1_MIN").arg(aux1), retractPwm);
+    _setParam(QString("SERVO%1_MAX").arg(aux1), deployPwm);
 
-    // store pwm values
-    _setParam(QString("RC8_MAX"), deployPwm);
-    _setParam(QString("RC8_MIN"), retractPwm);
+    // -----------------------------
+    // Servo 2
+    // -----------------------------
+    _setParam(QString("SERVO%1_FUNCTION").arg(aux2), 0);
+    _setParam(QString("SERVO%1_MIN").arg(aux2), retractPwm);
+    _setParam(QString("SERVO%1_MAX").arg(aux2), deployPwm);
 
-    _setParam(QString("RC9_MAX"), deployPwm);
-    _setParam(QString("RC9_MIN"), retractPwm);
+    // -----------------------------
+    // Servo 3
+    // -----------------------------
+    _setParam(QString("SERVO%1_FUNCTION").arg(aux3), 0);
+    _setParam(QString("SERVO%1_MIN").arg(aux3), retractPwm);
+    _setParam(QString("SERVO%1_MAX").arg(aux3), deployPwm);
 
-    _setParam(QString("RC10_MAX"), deployPwm);
-    _setParam(QString("RC10_MIN"), retractPwm);
+    qDebug() << "Servo params written";
 }
 
 // ✅ Write parameter

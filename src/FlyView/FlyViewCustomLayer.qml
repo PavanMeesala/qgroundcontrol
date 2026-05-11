@@ -268,7 +268,7 @@ Item {
                         color: "#ecf0f1"
 
                         TextField {
-                            id: servo01Field
+                            id: servo1Field
                             anchors.fill: parent
                             anchors.margins: 2
 
@@ -303,7 +303,7 @@ Item {
                         color: "#ecf0f1"
 
                         TextField {
-                            id: servo02Field
+                            id: servo2Field
                             anchors.fill: parent
                             anchors.margins: 2
 
@@ -338,7 +338,7 @@ Item {
                         color: "#ecf0f1"
 
                         TextField {
-                            id: servo03Field
+                            id: servo3Field
                             anchors.fill: parent
                             anchors.margins: 2
 
