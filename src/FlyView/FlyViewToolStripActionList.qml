@@ -17,6 +17,8 @@ ToolStripActionList {
         GuidedActionRTL { },
         GuidedActionPause { },
         FlyViewAdditionalActionsButton { },
-        FlyViewGripperButton { }
+        FlyViewGripperButton { },
+        // Dynamic landing
+        GuidedActionDynamicLanding { }
     ]
 }

@@ -108,8 +108,13 @@ Item {
     readonly property int actionMVArm:                      28
     readonly property int actionMVDisarm:                   29
     readonly property int actionChangeLoiterRadius:         30
-
     readonly property int customActionStart:                10000 // Custom actions ids should start here so that they don't collide with the built in actions
+
+    // Dynamic landing button
+    readonly property int actionDynamicLanding:             31
+    readonly property string dynamicLandingTitle: qsTr("Dynamic Landing")
+    readonly property string dynamicLandingMessage: qsTr("Start dynamic landing")
+    property bool showDynamicLanding:        _guidedActionsEnabled && _vehicleFlying
 
     property var    _activeVehicle:             QGroundControl.multiVehicleManager.activeVehicle
     property var    _flyViewSettings:           QGroundControl.settingsManager.flyViewSettings
@@ -540,6 +545,14 @@ Item {
             confirmDialog.title = changeHeadingTitle
             confirmDialog.message = changeHeadingMessage
             break
+
+        // Dynamic landing
+        case actionDynamicLanding:
+            confirmDialog.title = dynamicLandingTitle
+            confirmDialog.message = dynamicLandingMessage
+            confirmDialog.hideTrigger =
+                    Qt.binding(function() { return !showDynamicLanding })
+            break;
         default:
             if (!customController.customConfirmAction(actionCode, actionData, mapIndicator, confirmDialog)) {
                 console.warn("Unknown actionCode", actionCode)
@@ -680,6 +693,11 @@ Item {
             break
         case actionChangeHeading:
             _activeVehicle.guidedModeChangeHeading(actionData)
+            break
+
+        // dynamic landing
+        case actionDynamicLanding:
+            console.log("Dynamic Landing Triggered")
             break
         default:
             if (!customController.customExecuteAction(actionCode, actionData, sliderOutputValue, optionChecked)) {
