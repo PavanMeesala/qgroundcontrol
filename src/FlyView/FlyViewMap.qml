@@ -236,6 +236,66 @@ FlightMap {
         showText: !pipMode
     }
 
+    // Green trajectory before takeoff
+    MapPolyline {
+        id: preTakeoffPolyline
+
+        line.width: 3
+        line.color: "green"
+        z: QGroundControl.zOrderTrajectoryLines
+        visible: !pipMode
+
+        path: []
+
+        property var lastCoordinate: null
+        property bool finished: false
+
+        Timer {
+            interval: 1000
+            running: true
+            repeat: true
+
+            onTriggered: {
+
+                if (!_activeVehicle)
+                    return
+
+                // Stop recording once vehicle starts flying
+                if (_activeVehicle.flying) {
+                    preTakeoffPolyline.finished = true
+                    return
+                }
+
+                // Do not add more points after takeoff
+                if (preTakeoffPolyline.finished)
+                    return
+
+                var coord = _activeVehicle.coordinate
+
+                if (!coord.isValid)
+                    return
+
+                // First point
+                if (preTakeoffPolyline.pathLength() === 0) {
+
+                    preTakeoffPolyline.addCoordinate(coord)
+                    preTakeoffPolyline.lastCoordinate = coord
+                    return
+                }
+
+                // Add point only if moved enough
+                var distance =
+                    preTakeoffPolyline.lastCoordinate.distanceTo(coord)
+
+                if (distance > 1.0) {
+
+                    preTakeoffPolyline.addCoordinate(coord)
+                    preTakeoffPolyline.lastCoordinate = coord
+                }
+            }
+        }
+    }
+
     // Add trajectory lines to the map
     MapPolyline {
         id:         trajectoryPolyline
