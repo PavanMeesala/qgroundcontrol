@@ -207,6 +207,61 @@ RowLayout {
                     }
                 }
 
+                // Toggle safety
+                Rectangle {
+                    id: safetyButton
+
+                    height: 44
+                    width: 100
+                    radius: 5
+
+                    property bool safetyOff: false
+
+                    color: safetyOff ?  "#217544" : "#86342a"
+                    border.color: "#222"
+                    border.width: 1
+
+                    Behavior on color {
+                        ColorAnimation { duration: 200 }
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: safetyButton.safetyOff ? "Safety OFF" : "Safety ON"
+
+                        font.pixelSize: 12
+                        font.bold: true
+
+                        // FORCE visibility in all themes
+                        color: "white"
+
+                        // Strong outline (fixes invisibility issue)
+                        style: Text.Outline
+                        styleColor: "black"
+
+                        // Extra trick (important)
+                        renderType: Text.NativeRendering
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+
+                            if (!_activeVehicle)
+                                return
+
+                            // Next state to send
+                            var nextState = safetyButton.safetyOff ? 0 : 1
+
+                            _activeVehicle.toggleSafetySwitch(nextState)
+
+                            // Update UI
+                            safetyButton.safetyOff = !safetyButton.safetyOff
+                        }
+                    }
+                }
+
                 LabelledComboBox {
                     id:                 primaryLinkCombo
                     Layout.alignment:   Qt.AlignTop

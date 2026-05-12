@@ -292,6 +292,9 @@ public:
     Q_PROPERTY(bool     mavlinkSigning              READ mavlinkSigning             NOTIFY mavlinkSigningChanged)
     Q_PROPERTY(QString  mavlinkSigningKeyName       READ mavlinkSigningKeyName      NOTIFY mavlinkSigningChanged)
 
+    //  Safety switch
+    Q_INVOKABLE void toggleSafetySwitch(int);
+
     /// Resets link status counters
     Q_INVOKABLE void resetCounters  ();
 

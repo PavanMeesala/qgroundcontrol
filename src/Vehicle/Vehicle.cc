@@ -78,7 +78,7 @@
 #include "GimbalController.h"
 #include "MavlinkSettings.h"
 #include "APM.h"
-
+#include <mavlink.h>
 #ifdef QT_DEBUG
 #include "MockLink.h"
 #endif
@@ -382,6 +382,37 @@ int Vehicle::getParamInt(QString param, int defaultValue)
 
 // ------------------------------------------
 // end of Lifebuoy control methods
+// ------------------------------------------
+// ------------------------------------------
+// Safety switch method
+// ------------------------------------------
+#include <mavlink.h>
+void Vehicle::toggleSafetySwitch(int state)
+{
+    mavlink_message_t msg;
+
+    mavlink_msg_command_long_pack(
+        255,                        // GCS sysid
+        0,                          // GCS compid
+        &msg,
+        id(),                       // target system
+        defaultComponentId(),       // target component
+        MAV_CMD_DO_SET_SAFETY_SWITCH_STATE,
+        0,
+        state,              // safety switch state
+        0,                          // reserved
+        0, 0, 0, 0, 0
+    );
+
+    auto sharedLink = _vehicleLinkManager->primaryLink().lock();
+
+    if (sharedLink) {
+        sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    }
+}
+
+// ------------------------------------------
+// Safety switch method end
 // ------------------------------------------
 
 void Vehicle::_commonInit(LinkInterface* link)
