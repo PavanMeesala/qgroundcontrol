@@ -40,6 +40,9 @@ FlightMap {
     property bool   _keepVehicleCentered:       pipMode ? true : false
     property bool   _saveZoomLevelSetting:      true
 
+    property var preArmPoints: []
+    property bool wasArmed: false
+
     function _adjustMapZoomForPipMode() {
         _saveZoomLevelSetting = false
         if (pipMode) {
@@ -236,61 +239,55 @@ FlightMap {
         showText: !pipMode
     }
 
-    // Green trajectory before takeoff
+    // Green line before arming
+
     MapPolyline {
-        id: preTakeoffPolyline
+        id: preArmPolyline
 
         line.width: 3
         line.color: "green"
         z: QGroundControl.zOrderTrajectoryLines
         visible: !pipMode
 
-        path: []
 
-        property var lastCoordinate: null
-        property bool finished: false
 
-        Timer {
-            interval: 1000
-            running: true
-            repeat: true
+        Connections {
+            target: _activeVehicle
 
-            onTriggered: {
+            function onArmedChanged() {
 
-                if (!_activeVehicle)
-                    return
-
-                // Stop recording once vehicle starts flying
-                if (_activeVehicle.flying) {
-                    preTakeoffPolyline.finished = true
+                if (!_activeVehicle) {
                     return
                 }
 
-                // Do not add more points after takeoff
-                if (preTakeoffPolyline.finished)
-                    return
+                // Vehicle just DISARMED
+                if (!_activeVehicle.armed) {
 
-                var coord = _activeVehicle.coordinate
+                    // Clear previous green path
+                    preArmPoints = []
+                    preArmPolyline.path = []
+                }
 
-                if (!coord.isValid)
-                    return
+                // Vehicle just ARMED
+                else {
 
-                // First point
-                if (preTakeoffPolyline.pathLength() === 0) {
+                    // Keep green line frozen
+                    preArmPolyline.path = preArmPoints
+                }
+            }
 
-                    preTakeoffPolyline.addCoordinate(coord)
-                    preTakeoffPolyline.lastCoordinate = coord
+            function onCoordinateChanged(coordinate) {
+
+                if (!_activeVehicle) {
                     return
                 }
 
-                // Add point only if moved enough
-                var distance =
-                    preTakeoffPolyline.lastCoordinate.distanceTo(coord)
+                // Record ONLY while disarmed
+                if (!_activeVehicle.armed) {
 
-                if (distance > 1.0) {
+                    preArmPoints.push(coordinate)
 
-                    preTakeoffPolyline.addCoordinate(coord)
-                    preTakeoffPolyline.lastCoordinate = coord
+                    preArmPolyline.path = preArmPoints
                 }
             }
         }
