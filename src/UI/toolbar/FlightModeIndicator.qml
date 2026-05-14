@@ -153,19 +153,17 @@ Item {
                     spacing: ScreenTools.defaultFontPixelWidth
                     visible: editMode || !hiddenFlightModesList.find(item => { return item === modelData } )
 
-                    QGCDelayButton {
+                    QGCButton {
                         id:                 modeButton
                         text:               modelData
-                        delay:              flightModeSettings.requireModeChangeConfirmation.rawValue ? defaultDelay : 0
+                        // delay:              flightModeSettings.requireModeChangeConfirmation.rawValue ? defaultDelay : 0
                         Layout.fillWidth:   true
 
-                        onActivated: {
+                        onClicked: {
                             if (editMode) {
                                 parent.children[1].toggle()
                                 parent.children[1].clicked()
                             } else {
-                                //var controller = globals.guidedControllerFlyView
-                                //controller.confirmAction(controller.actionSetFlightMode, modelData)
                                 activeVehicle.flightMode = modelData
                                 mainWindow.closeIndicatorDrawer()
                             }

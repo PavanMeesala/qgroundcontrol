@@ -380,6 +380,31 @@ Item {
 
     // Called when an action is about to be executed in order to confirm
     function confirmAction(actionCode, actionData, mapIndicator) {
+        if (actionCode === actionTakeoff) {
+
+            var takeoffAlt =
+                    _unitsConversion.metersToAppSettingsVerticalDistanceUnits(
+                        _activeVehicle.minimumTakeoffAltitudeMeters()
+                    )
+
+            executeAction(actionCode, actionData, takeoffAlt, false)
+            return
+        }
+
+        if (actionCode === actionChangeAlt ||
+            actionCode === actionPause ||
+            actionCode === actionOrbit ||
+            actionCode === actionChangeSpeed) {
+
+            // Default slider value
+            executeAction(actionCode, actionData, 10, false)
+            return
+        }
+
+        // All normal actions execute immediately
+        executeAction(actionCode, actionData, 0, false)
+        return
+
         var showImmediate = true
         closeAll()
         confirmDialog.action = actionCode

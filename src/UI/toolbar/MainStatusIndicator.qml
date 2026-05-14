@@ -188,11 +188,11 @@ RowLayout {
                 spacing: ScreenTools.defaultFontPixelWidth
                 visible: parametersReady
 
-                QGCDelayButton {
+                QGCButton {
                     enabled:    _armed || !_healthAndArmingChecksSupported || _activeVehicle.healthAndArmingCheckReport.canArm
                     text:       _armed ? qsTr("Disarm") : (control._allowForceArm ? qsTr("Force Arm") : qsTr("Arm"))
 
-                    onActivated: {
+                    onClicked: {
                         if (_armed) {
                             _activeVehicle.armed = false
                         } else {
