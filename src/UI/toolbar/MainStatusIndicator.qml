@@ -228,7 +228,7 @@ RowLayout {
                     Text {
                         anchors.centerIn: parent
 
-                        text: safetyButton.safetyOff ? "Safety OFF" : "Safety ON"
+                        text: safetyButton.safetyOff ? "Safety ON" : "Safety OFF"
 
                         font.pixelSize: 12
                         font.bold: true
