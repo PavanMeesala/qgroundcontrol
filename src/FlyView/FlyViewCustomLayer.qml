@@ -48,13 +48,13 @@ Item {
     Rectangle {
         id: lifebuoyPanel
         anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.leftMargin: 20  // Specific distance from left
-        anchors.topMargin:  60
+        anchors.left: parent.left
+        anchors.leftMargin: 60  // Specific distance from left
+        anchors.topMargin:  10
         // anchors.margins: 60 // make it 20 to move it to corner
 
         width: 160
-        height: 150
+        height: 130
         radius: 10
         color:Qt.rgba(0, 0, 0, 0.11)
         visible: QGroundControl.multiVehicleManager.activeVehicle !== null
