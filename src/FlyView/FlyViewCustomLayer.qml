@@ -48,11 +48,43 @@ Item {
     Rectangle {
         id: lifebuoyPanel
         anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.leftMargin: 60  // Specific distance from left
-        anchors.topMargin:  10
-        // anchors.margins: 60 // make it 20 to move it to corner
 
+        states: [
+            State {
+                name: "LEFT"
+                when: QGroundControl.multiVehicleManager.vehicles.count > 1
+                AnchorChanges {
+                    target: lifebuoyPanel
+                    anchors.left:  parent.left
+                    anchors.right: undefined
+                }
+                PropertyChanges {
+                    target: lifebuoyPanel
+                    anchors.leftMargin:  60
+                    anchors.rightMargin: 0
+                    anchors.topMargin:  10
+                }
+            },
+            State {
+                name: "RIGHT"
+                when: QGroundControl.multiVehicleManager.vehicles.count <= 1
+                AnchorChanges {
+                    target: lifebuoyPanel
+                    anchors.left:  undefined
+                    anchors.right: parent.right
+                }
+                PropertyChanges {
+                    target: lifebuoyPanel
+                    anchors.leftMargin:  0
+                    anchors.rightMargin: 10
+                    anchors.topMargin:  60
+                }
+            }
+        ]
+
+        transitions: Transition {
+            AnchorAnimation { duration: 200 }
+        }
         width: 160
         height: 130
         radius: 10
@@ -66,6 +98,7 @@ Item {
                 anchors.topMargin: 5
                 anchors.horizontalCenter: parent.horizontalCenter
             }
+
         // ================= DEPLOY BUTTON =================
         Rectangle {
             id: deployButton
