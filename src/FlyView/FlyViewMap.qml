@@ -737,7 +737,7 @@ FlightMap {
                             mapClickDropPanel.close()
                             gotoLocationItem.show(mapClickCoord)
 
-                            if ((_activeVehicle.flightMode == _activeVehicle.gotoFlightMode) && !_flyViewSettings.goToLocationRequiresConfirmInGuided.value) {
+                            if ((_activeVehicle.flightMode == _activeVehicle.gotoFlightMode || _activeVehicle.flightMode == _activeVehicle.rescueFlightMode) && !_flyViewSettings.goToLocationRequiresConfirmInGuided.value) {
                                 if (globals.guidedControllerFlyView.executeAction(globals.guidedControllerFlyView.actionGoto, mapClickCoord)) {
                                     gotoLocationItem.actionConfirmed() // Still need to call this to commit the new coordinate and radius
                                 } else {

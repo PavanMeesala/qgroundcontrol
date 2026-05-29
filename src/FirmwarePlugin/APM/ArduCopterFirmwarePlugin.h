@@ -34,6 +34,7 @@ struct APMCopterMode
         AUTOROTATE  = 26,
         AUTO_RTL    = 27,
         TURTLE      = 28,
+        RESCUE      = 29,  // RESCUE mode is used to recover from a bad state by flipping the vehicle over and applying full throttle
     };
 };
 
@@ -56,6 +57,7 @@ public:
     QString takeControlFlightMode() const override;
     QString followFlightMode() const override;
     QString gotoFlightMode() const override { return guidedFlightMode(); }
+    QString rescueFlightMode() const override { return rescueFlightMode_(); }
     QString takeOffFlightMode() const override { return guidedFlightMode(); }
     QString stabilizedFlightMode() const override;
     QString autoDisarmParameter(Vehicle *vehicle) const override { Q_UNUSED(vehicle); return QStringLiteral("DISARM_DELAY"); }
@@ -93,7 +95,7 @@ private:
     const QString _autoRotateFlightMode = tr("AutoRotate");
     const QString _autoRTLFlightMode = tr("AutoRTL");
     const QString _turtleFlightMode = tr("Turtle");
-
+    const QString _rescueFlightMode = tr("RESCUE");
     static bool _remapParamNameIntialized;
     static FirmwarePlugin::remapParamNameMajorVersionMap_t _remapParamName;
 };

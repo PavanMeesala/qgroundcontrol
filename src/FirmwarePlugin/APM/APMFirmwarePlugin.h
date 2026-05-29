@@ -13,7 +13,8 @@ struct APMCustomMode
         AUTO        = 3,
         GUIDED      = 4,
         RTL         = 6,
-        SMART_RTL   = 21
+        SMART_RTL   = 21,
+        RESCUE      = 29,
     };
 };
 
@@ -38,10 +39,12 @@ public:
     bool MAV_CMD_DO_SET_MODE_is_supported() const override { return true; }
     bool isGuidedMode(const Vehicle *vehicle) const override;
     QString gotoFlightMode() const override { return guidedFlightMode(); }
+    QString rescueFlightMode() const override { return rescueFlightMode_(); }
     QString rtlFlightMode() const override;
     QString smartRTLFlightMode() const override;
     QString missionFlightMode() const override;
     virtual QString guidedFlightMode() const;
+    virtual QString rescueFlightMode_() const;
     void pauseVehicle(Vehicle *vehicle) const override;
     void guidedModeRTL(Vehicle *vehicle, bool smartRTL) const override;
     void guidedModeChangeAltitude(Vehicle *vehicle, double altitudeChange, bool pauseVehicle) override;
@@ -88,6 +91,7 @@ protected:
     const QString _rtlFlightMode = tr("RTL");
     const QString _smartRtlFlightMode = tr("Smart RTL");
     const QString _autoFlightMode = tr("Auto");
+    const QString _rescueFlightMode = tr("RESCUE");
 
 private slots:
     void _artooSocketError(QAbstractSocket::SocketError socketError);

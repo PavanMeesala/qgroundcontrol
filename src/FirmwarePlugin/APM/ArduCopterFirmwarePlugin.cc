@@ -35,6 +35,7 @@ ArduCopterFirmwarePlugin::ArduCopterFirmwarePlugin(QObject *parent)
         { APMCopterMode::AUTOROTATE,   _autoRotateFlightMode    },
         { APMCopterMode::AUTO_RTL,     _autoRTLFlightMode       },
         { APMCopterMode::TURTLE,       _turtleFlightMode        },
+        { APMCopterMode::RESCUE,       _rescueFlightMode        },
     });
 
     static FlightModeList availableFlightModes = {
@@ -65,6 +66,7 @@ ArduCopterFirmwarePlugin::ArduCopterFirmwarePlugin(QObject *parent)
         { _autoRotateFlightMode  , APMCopterMode::AUTOROTATE,    true , true },
         { _autoRTLFlightMode     , APMCopterMode::AUTO_RTL,      true , true },
         { _turtleFlightMode      , APMCopterMode::TURTLE,        true , true },
+        { _rescueFlightMode      , APMCopterMode::RESCUE,        true , true },
     };
     updateAvailableFlightModes(availableFlightModes);
 
@@ -226,6 +228,8 @@ uint32_t ArduCopterFirmwarePlugin::_convertToCustomFlightModeEnum(uint32_t val) 
         return APMCopterMode::RTL;
     case APMCustomMode::SMART_RTL:
         return APMCopterMode::SMART_RTL;
+    case APMCustomMode::RESCUE:
+        return APMCopterMode::RESCUE;
     default:
         return UINT32_MAX;
     }

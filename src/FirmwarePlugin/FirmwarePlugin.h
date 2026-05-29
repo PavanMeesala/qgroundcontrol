@@ -175,6 +175,7 @@ public:
 
     /// Returns the flight mode which the vehicle will be in if it is performing a goto location
     virtual QString gotoFlightMode() const { return QString(); }
+    virtual QString rescueFlightMode() const { return QString(); }
 
     /// Returns the flight mode which the vehicle will be for follow me
     virtual QString followFlightMode() const { return QString(); }

@@ -38,6 +38,7 @@ APMFirmwarePlugin::APMFirmwarePlugin(QObject *parent)
         { APMCustomMode::RTL,           _rtlFlightMode      },
         { APMCustomMode::SMART_RTL,     _smartRtlFlightMode },
         { APMCustomMode::AUTO,          _autoFlightMode     },
+        { APMCustomMode::RESCUE,        _rescueFlightMode   },
     });
 
     static FlightModeList modeList {
@@ -46,6 +47,7 @@ APMFirmwarePlugin::APMFirmwarePlugin(QObject *parent)
        { _rtlFlightMode      , APMCustomMode::RTL,       true , true },
        { _smartRtlFlightMode , APMCustomMode::SMART_RTL, true , true },
        { _autoFlightMode     , APMCustomMode::AUTO,      true , true },
+       { _rescueFlightMode   , APMCustomMode::RESCUE,    true , true },
     };
 
     updateAvailableFlightModes(modeList);
@@ -665,6 +667,10 @@ QString APMFirmwarePlugin::guidedFlightMode() const
 {
     return _modeEnumToString.value(_convertToCustomFlightModeEnum(APMCustomMode::GUIDED), _guidedFlightMode);
 }
+QString APMFirmwarePlugin::rescueFlightMode_() const
+{
+    return _modeEnumToString.value(_convertToCustomFlightModeEnum(APMCustomMode::RESCUE), _rescueFlightMode);
+}
 
 void APMFirmwarePlugin::_soloVideoHandshake()
 {
@@ -828,8 +834,9 @@ bool APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
             return true;
         }
     }
-
-    setGuidedMode(vehicle, true);
+    if (vehicle->flightMode() != rescueFlightMode()) {
+        setGuidedMode(vehicle, true);
+    }
 
     QGeoCoordinate coordWithAltitude = gotoCoord;
     coordWithAltitude.setAltitude(vehicle->altitudeRelative()->rawValue().toDouble());
@@ -1022,10 +1029,11 @@ bool APMFirmwarePlugin::_guidedModeTakeoff(Vehicle *vehicle, double altitudeRel)
     if (!qIsNaN(altitudeRel) && altitudeRel > takeoffAltRel) {
         takeoffAltRel = altitudeRel;
     }
-
-    if (!_setFlightModeAndValidate(vehicle, guidedFlightMode())) {
-        QGC::showAppMessage(tr("Unable to takeoff: Vehicle failed to change to Guided mode."));
-        return false;
+    if (vehicle->flightMode() != rescueFlightMode()) {
+        if (!_setFlightModeAndValidate(vehicle, guidedFlightMode())) {
+            QGC::showAppMessage(tr("Unable to takeoff: Vehicle failed to change to Guided mode."));
+            return false;
+        }
     }
 
     if (!_armVehicleAndValidate(vehicle)) {
