@@ -41,6 +41,7 @@ FlightMap {
     property bool   _saveZoomLevelSetting:      true
 
     property var preArmPoints: []
+    property var rescuePath: []
     property bool wasArmed: false
 
     function _adjustMapZoomForPipMode() {
@@ -183,6 +184,22 @@ FlightMap {
             }
         }
     }
+    function updateRescuePath() {
+
+        rescuePath = []
+
+        if (!_activeVehicle)
+            return
+
+        if (!_activeVehicle.rescueManager)
+            return
+
+        var model = _activeVehicle.rescueManager.rescuePoints
+
+        for (var i = 0; i < model.count; i++) {
+            rescuePath.push(model.get(i).coordinate)
+        }
+    }
 
     on_ActiveVehicleCoordinateChanged: {
         if (_keepMapCenteredOnVehicle && _activeVehicleCoordinate.isValid && !_disableVehicleTracking) {
@@ -224,6 +241,22 @@ FlightMap {
                 mapFitFunctions.fitMapViewportToMissionItems()
                 firstVehiclePositionReceived = true
             }
+        }
+    }
+    Connections {
+        target:
+            _activeVehicle ?
+            _activeVehicle.rescueManager :
+            null
+
+        ignoreUnknownSignals: true
+
+        function onRescuePointsChanged() {
+            updateRescuePath()
+        }
+
+        function onActiveIndexChanged() {
+            updateRescuePath()
         }
     }
 
@@ -315,7 +348,43 @@ FlightMap {
             function onPointsCleared() { trajectoryPolyline.path = [] }
         }
     }
+    MapPolyline {
+        id: rescuePolyline
 
+        visible:
+            !pipMode &&
+            _activeVehicle &&
+            _activeVehicle.flightMode === "RESCUE"
+
+        line.width: 4
+        line.color: "magenta"
+
+        z: QGroundControl.zOrderTrajectoryLines + 10
+
+        path: rescuePath
+    }
+    MapItemView {
+
+        visible:
+            !pipMode &&
+            _activeVehicle &&
+            _activeVehicle.flightMode === "RESCUE"
+
+        model:
+            _activeVehicle ?
+            _activeVehicle.rescueManager.rescuePoints :
+            null
+
+        delegate: RescueWaypointVisual {
+
+            waypoint: object
+
+            index: model.index
+
+            activeIndex:
+                _activeVehicle.rescueManager.activeIndex
+        }
+    }
     // Add the vehicles to the map
     MapItemView {
         model: QGroundControl.multiVehicleManager.vehicles

@@ -145,6 +145,8 @@ Vehicle::Vehicle(LinkInterface*             link,
     _autopilotPlugin = _firmwarePlugin->autopilotPlugin(this);
     _autopilotPlugin->setParent(this);
 
+    _rescueManager = new VehicleRescueManager(this);
+
     // PreArm Error self-destruct timer
     connect(&_prearmErrorTimer, &QTimer::timeout, this, &Vehicle::_prearmErrorTimeout);
     _prearmErrorTimer.setInterval(_prearmErrorTimeoutMSecs);
@@ -495,6 +497,7 @@ void Vehicle::_commonInit(LinkInterface* link)
 
     // Remote ID manager might want to acces parameters so make sure to create it after
     _remoteIDManager = new RemoteIDManager(this);
+    _rescueManager   = new VehicleRescueManager(this);
 
     // Flight modes can differ based on advanced mode
     connect(QGCCorePlugin::instance(), &QGCCorePlugin::showAdvancedUIChanged, this, &Vehicle::flightModesChanged);
@@ -708,6 +711,12 @@ void Vehicle::resetCounters()
 
 void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t message)
 {
+    if (message.msgid >= 54990) {
+        qDebug() << "RAW MAVLINK"
+                << message.msgid
+                << "sysid=" << message.sysid
+                << "compid=" << message.compid;
+    }
     if (message.sysid != _systemID && message.sysid != 0) {
         // We allow RADIO_STATUS messages which come from a link the vehicle is using to pass through and be handled
         if (!(message.msgid == MAVLINK_MSG_ID_RADIO_STATUS && _vehicleLinkManager->containsLink(link))) {
@@ -783,6 +792,12 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
     }
 
     this->handleMessage(this, message);
+    if (message.msgid == 55000 || message.msgid == 55001) {
+        qDebug() << "CUSTOM MAVLINK RECEIVED"
+                << "msgid=" << message.msgid
+                << "sysid=" << message.sysid
+                << "compid=" << message.compid;
+    }
 
     switch (message.msgid) {
     case MAVLINK_MSG_ID_HOME_POSITION:
@@ -790,10 +805,40 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
         break;
     case MAVLINK_MSG_ID_HEARTBEAT:
         _handleHeartbeat(message);
+        if (flightMode() != "RESCUE") {
+            _rescueManager->clear();
+        }
         break;
     case MAVLINK_MSG_ID_RC_CHANNELS:
         _handleRCChannels(message);
         break;
+    case MAVLINK_MSG_ID_RESCUE_WP:
+    {
+        qDebug() << "QGC RECEIVED RESCUE_WP";
+        mavlink_rescue_wp_t wp;
+        mavlink_msg_rescue_wp_decode(&message, &wp);
+
+        _rescueManager->handleRescueWaypoint(
+            wp.total_count,
+            wp.seq,
+            wp.lat,
+            wp.lon);
+    }
+    break;
+    case MAVLINK_MSG_ID_USER_WP_REACHED:
+    {
+        qDebug() << "QGC RECEIVED USER_WP_REACHED";
+        mavlink_user_wp_reached_t reached;
+
+        mavlink_msg_user_wp_reached_decode(
+            &message,
+            &reached);
+
+        _rescueManager->handleWaypointReached(
+            reached.wp_index,
+            reached.reached);
+    }
+    break;
     case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
     {
         mavlink_servo_output_raw_t servoOutputRaw;

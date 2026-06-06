@@ -38,6 +38,7 @@ qt_add_qml_module(FlyViewModule
         FlyViewToolStrip.qml
         FlyViewToolStripActionList.qml
         GuidedActionDynamicLanding.qml
+        RescueWaypointVisual.qml
 
         FlyViewTopRightColumnLayout.qml
         FlyViewTopRightPanel.qml

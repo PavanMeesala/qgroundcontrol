@@ -107,6 +107,8 @@ private:
     bool _guidedModeTakeoff(Vehicle *vehicle, double altitudeRel) const;
     void _handleRCChannels(Vehicle *vehicle, mavlink_message_t* message);
     void _handleRCChannelsRaw(Vehicle *vehicle, mavlink_message_t* message);
+    void _handleUserWpReached(Vehicle *vehicle, mavlink_message_t* message);
+    void _handleRescueWp(Vehicle *vehicle, mavlink_message_t* message);
     QString _getLatestVersionFileUrl(Vehicle *vehicle) const final;
     QString _versionRegex() const final { return QStringLiteral(" V([0-9,\\.]*)$"); }
     QString _vehicleClassToString(QGCMAVLink::VehicleClass_t vehicleClass) const;

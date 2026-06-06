@@ -300,7 +300,17 @@ bool APMFirmwarePlugin::adjustIncomingMavlinkMessage(Vehicle *vehicle, mavlink_m
     } else if (message->msgid == MAVLINK_MSG_ID_HOME_POSITION && instanceData)  {
         instanceData->lastHomePositionTime = QTime::currentTime();
     } else {
-        // Only translate messages which come from ArduPilot code. All other components are expected to follow current mavlink spec.
+        // Handle custom messages from any component
+        switch (message->msgid) {
+        case MAVLINK_MSG_ID_USER_WP_REACHED:
+            _handleUserWpReached(vehicle, message);
+            break;
+        case MAVLINK_MSG_ID_RESCUE_WP:
+            _handleRescueWp(vehicle, message);
+            break;
+        }
+
+        // Only translate messages which come from ArduPilot code.
         if (_ardupilotComponentMap[vehicle->id()][message->compid]) {
             switch (message->msgid) {
             case MAVLINK_MSG_ID_PARAM_VALUE:
@@ -326,7 +336,25 @@ bool APMFirmwarePlugin::adjustIncomingMavlinkMessage(Vehicle *vehicle, mavlink_m
 
     return true;
 }
+void APMFirmwarePlugin::_handleUserWpReached(Vehicle *vehicle, mavlink_message_t *message)
+{
+    Q_UNUSED(vehicle)
+    mavlink_user_wp_reached_t pkt;
+    mavlink_msg_user_wp_reached_decode(message, &pkt);
+    qWarning() << "USER_WP_REACHED: wp_index=" << pkt.wp_index
+               << "reached=" << (bool)pkt.reached;
+}
 
+void APMFirmwarePlugin::_handleRescueWp(Vehicle *vehicle, mavlink_message_t *message)
+{
+    Q_UNUSED(vehicle)
+    mavlink_rescue_wp_t pkt;
+    mavlink_msg_rescue_wp_decode(message, &pkt);
+    qWarning() << "RESCUE_WP: seq=" << pkt.seq
+               << "total=" << pkt.total_count
+               << "lat=" << pkt.lat / 1e7
+               << "lon=" << pkt.lon / 1e7;
+}
 void APMFirmwarePlugin::adjustOutgoingMavlinkMessageThreadSafe(Vehicle *vehicle, LinkInterface *outgoingLink, mavlink_message_t *message)
 {
     switch (message->msgid) {

@@ -17,6 +17,7 @@
 #include "QGCMAVLink.h"
 #include "VehicleFactGroup.h"
 #include "VehicleTypes.h"
+#include "VehicleRescueManager.h"
 
 class Actuators;
 class HealthAndArmingCheckReport;
@@ -134,6 +135,8 @@ private:
     int _deployPWM = 1900;
     int _retractPWM = 1100;
 
+    VehicleRescueManager* _rescueManager = nullptr;
+
 public:
     Vehicle(LinkInterface*          link,
             int                     vehicleId,
@@ -162,6 +165,7 @@ public:
     };
     Q_ENUM(CheckList)
 
+    Q_PROPERTY(VehicleRescueManager* rescueManager              READ rescueManager                                                  CONSTANT)
     Q_PROPERTY(int                  id                          READ id                                                             CONSTANT)
     Q_PROPERTY(AutoPilotPlugin*     autopilotPlugin             MEMBER _autopilotPlugin                                             CONSTANT)
     Q_PROPERTY(QGeoCoordinate       coordinate                  READ coordinate                                                     NOTIFY coordinateChanged)
@@ -462,6 +466,7 @@ public:
     /// Sends the specified messages multiple times to the vehicle in order to attempt to
     /// guarantee that it makes it to the vehicle.
     void sendMessageMultiple(mavlink_message_t message);
+    VehicleRescueManager* rescueManager(){ return _rescueManager;}
 
     /// Provides access to AutoPilotPlugin for this vehicle.
     AutoPilotPlugin* autopilotPlugin() { return _autopilotPlugin; }
