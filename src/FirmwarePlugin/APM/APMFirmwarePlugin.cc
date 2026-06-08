@@ -85,12 +85,26 @@ bool APMFirmwarePlugin::isCapable(const Vehicle* vehicle, FirmwareCapabilities c
 QStringList APMFirmwarePlugin::flightModes(Vehicle *vehicle) const
 {
     Q_UNUSED(vehicle)
+
     QStringList flightModesList;
+
+    const QStringList allowedModes = {
+        "Guided",
+        "RTL",
+        "Loiter",
+        "RESCUE"
+    };
+
     for (const FirmwareFlightMode &mode : _flightModeList) {
-        if (mode.canBeSet){
-            flightModesList += mode.mode_name;
+
+        if (!mode.canBeSet)
+            continue;
+
+        if (allowedModes.contains(mode.mode_name, Qt::CaseInsensitive)) {
+            flightModesList.append(mode.mode_name);
         }
     }
+
     return flightModesList;
 }
 
