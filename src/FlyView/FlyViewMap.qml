@@ -42,6 +42,8 @@ FlightMap {
 
     property var preArmPoints: []
     property var rescuePath: []
+    property var completedRescuePath: []
+    property var upcomingRescuePath: []
     property bool wasArmed: false
 
     function _adjustMapZoomForPipMode() {
@@ -185,20 +187,44 @@ FlightMap {
         }
     }
     function updateRescuePath() {
-
         rescuePath = []
+        completedRescuePath = []
+        upcomingRescuePath = []
 
-        if (!_activeVehicle)
+        if (!_activeVehicle || !_activeVehicle.rescueManager) {
+            console.log("RESCUE: no vehicle or rescueManager")
             return
-
-        if (!_activeVehicle.rescueManager)
-            return
+        }
 
         var model = _activeVehicle.rescueManager.rescuePoints
+        console.log("RESCUE: model count =", model.count)
 
+        var activeIdx = _activeVehicle.rescueManager.activeIndex
+
+        var temp = []
         for (var i = 0; i < model.count; i++) {
-            rescuePath.push(model.get(i).coordinate)
+            temp.push(model.get(i).coordinate)
+            console.log("RESCUE: point", i, model.get(i).coordinate)
         }
+        rescuePath = temp
+
+        var completed = []
+        for (var j = 0; j <= activeIdx && j < model.count; j++) {
+            completed.push(model.get(j).coordinate)
+        }
+        if (_activeVehicle.coordinate.isValid && activeIdx >= 0) {
+            completed.push(_activeVehicle.coordinate)
+        }
+        completedRescuePath = completed
+
+        var upcoming = []
+        for (var k = activeIdx; k < model.count; k++) {
+            upcoming.push(model.get(k).coordinate)
+        }
+        upcomingRescuePath = upcoming
+
+        console.log("RESCUE: completedPath length =", completedRescuePath.length)
+        console.log("RESCUE: upcomingPath length =", upcomingRescuePath.length)
     }
 
     on_ActiveVehicleCoordinateChanged: {
@@ -244,19 +270,12 @@ FlightMap {
         }
     }
     Connections {
-        target:
-            _activeVehicle ?
-            _activeVehicle.rescueManager :
-            null
-
+        target: _activeVehicle
         ignoreUnknownSignals: true
-
-        function onRescuePointsChanged() {
-            updateRescuePath()
-        }
-
-        function onActiveIndexChanged() {
-            updateRescuePath()
+        function onCoordinateChanged(coordinate) {
+            if (_activeVehicle && _activeVehicle.flightMode === "RESCUE") {
+                updateRescuePath()
+            }
         }
     }
 
@@ -348,20 +367,32 @@ FlightMap {
             function onPointsCleared() { trajectoryPolyline.path = [] }
         }
     }
+    // Completed rescue path — red, blends with drone trajectory
     MapPolyline {
-        id: rescuePolyline
-
+        id: rescueCompletedPolyline
         visible:
             !pipMode &&
             _activeVehicle &&
-            _activeVehicle.flightMode === "RESCUE"
+            _activeVehicle.flightMode === "RESCUE" &&
+            completedRescuePath.length > 1
+        line.width: 3
+        line.color: "red"
+        z: QGroundControl.zOrderTrajectoryLines + 5
+        path: completedRescuePath
+    }
 
+    // Upcoming rescue path — magenta, shows future waypoints
+    MapPolyline {
+        id: rescueUpcomingPolyline
+        visible:
+            !pipMode &&
+            _activeVehicle &&
+            _activeVehicle.flightMode === "RESCUE" &&
+            upcomingRescuePath.length > 1
         line.width: 4
         line.color: "magenta"
-
         z: QGroundControl.zOrderTrajectoryLines + 10
-
-        path: rescuePath
+        path: upcomingRescuePath
     }
     MapItemView {
 
