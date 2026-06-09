@@ -16,7 +16,9 @@ public:
     DEFINE_SETTINGFACT(videoSource)
     DEFINE_SETTINGFACT(udpUrl)
     DEFINE_SETTINGFACT(tcpUrl)
-    DEFINE_SETTINGFACT(rtspUrl)
+    DEFINE_SETTINGFACT(rtspUrl)      // rgb stream
+    DEFINE_SETTINGFACT(rtspUrl2)     // thermal stream
+    DEFINE_SETTINGFACT(rtspUrl3)     // IR stream
     DEFINE_SETTINGFACT(aspectRatio)
     DEFINE_SETTINGFACT(videoFit)
     DEFINE_SETTINGFACT(gridLines)
@@ -58,6 +60,19 @@ public:
     static constexpr const char* videoSourceYuneecMantisG     = QT_TRANSLATE_NOOP("VideoSettings", "Yuneec Mantis G");
     static constexpr const char* videoSourceHerelinkAirUnit   = QT_TRANSLATE_NOOP("VideoSettings", "Herelink AirUnit");
     static constexpr const char* videoSourceHerelinkHotspot   = QT_TRANSLATE_NOOP("VideoSettings", "Herelink Hotspot");
+    // Add inside the VideoSettings class, alongside existing constexpr strings:
+    //static constexpr const char* videoSourceRGB    = QT_TRANSLATE_NOOP("VideoSettings", "RGB Stream");
+    static constexpr const char* videoSourceThermal = QT_TRANSLATE_NOOP("VideoSettings", "Thermal Stream");
+    static constexpr const char* videoSourceIR  = QT_TRANSLATE_NOOP("VideoSettings", "IR Stream");
+
+    // Add Q_PROPERTY accessors so QML can read them:
+    Q_PROPERTY(QString RgbSource        READ RgbSource        CONSTANT)
+    Q_PROPERTY(QString ThermalSource   READ ThermalSource   CONSTANT)
+    Q_PROPERTY(QString IrSource    READ IrSource    CONSTANT)
+
+    QString RgbSource()      { return videoSourceRTSP; }
+    QString ThermalSource() { return videoSourceThermal; }
+    QString IrSource()  { return videoSourceIR; }
 
 signals:
     void streamConfiguredChanged    (bool configured);

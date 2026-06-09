@@ -5,9 +5,15 @@ import QGroundControl.Controls
 
 Item {
     id: _root
+    clip: true
 
     property Item pipView
     property Item pipState: videoPipState
+    property int  _activeStream:   0
+    property bool _showStreamMenu: false
+
+    readonly property bool _isRtspSource: QGroundControl.settingsManager.videoSettings.videoSource.rawValue ===
+                                          QGroundControl.settingsManager.videoSettings.rtspVideoSource
 
     PipState {
         id:         videoPipState
@@ -124,13 +130,134 @@ Item {
         }
     }
 
-    ProximityRadarVideoView{
+    ProximityRadarVideoView {
         anchors.fill:   parent
         vehicle:        QGroundControl.multiVehicleManager.activeVehicle
     }
 
     ObstacleDistanceOverlayVideo {
-        id: obstacleDistance
+        id:       obstacleDistance
         showText: pipState.state === pipState.fullState
+    }
+
+    // ── Stream selector toggle button ─────────────────────────────────
+    Rectangle {
+        id:             streamToggleBtn
+        visible:        QGroundControl.videoManager.hasVideo && _isRtspSource
+        z:              300
+        anchors.top:    parent.top
+        anchors.left:   parent.left
+        anchors.topMargin:  pipState.state === pipState.fullState
+                            ? ScreenTools.toolbarHeight * 5 //+ ScreenTools.defaultFontPixelHeight * 0.5
+                            : ScreenTools.defaultFontPixelHeight * 0.4
+        anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.6
+        width:          streamRow.implicitWidth + ScreenTools.defaultFontPixelWidth * 3
+        height:         ScreenTools.defaultFontPixelHeight * 1.8
+        color:          Qt.rgba(0, 0, 0, 0.75)
+        border.color:   Qt.rgba(1, 1, 1, 0.35)
+        border.width:   1
+        radius:         4
+
+        Row {
+            id:             streamRow
+            anchors.centerIn: parent
+            spacing:        ScreenTools.defaultFontPixelWidth * 0.5
+
+            QGCLabel {
+                id:             streamLabel
+                text:           ["A8 RGB", "Thermal RGB", "Thermal IR"][_activeStream]
+                color:          "white"
+                font.pointSize: ScreenTools.smallFontPointSize
+                font.bold:      true
+            }
+            QGCLabel {
+                text:           _showStreamMenu ? "▲" : "▼"
+                color:          Qt.rgba(1, 1, 1, 0.7)
+                font.pointSize: ScreenTools.smallFontPointSize
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked:    _showStreamMenu = !_showStreamMenu
+        }
+    }
+
+    // ── Dropdown panel ────────────────────────────────────────────────
+    Rectangle {
+        id:             streamDropdown
+        visible:        _showStreamMenu && QGroundControl.videoManager.hasVideo && _isRtspSource
+        z:              300
+        anchors.top:    streamToggleBtn.bottom
+        anchors.left:   streamToggleBtn.left
+        anchors.topMargin: 3
+        width:          Math.max(streamToggleBtn.width, ScreenTools.defaultFontPixelWidth * 16)
+        height:         dropdownCol.implicitHeight + ScreenTools.defaultFontPixelHeight * 0.6
+        color:          Qt.rgba(0.08, 0.08, 0.08, 0.92)
+        border.color:   Qt.rgba(1, 1, 1, 0.25)
+        border.width:   1
+        radius:         4
+
+        Column {
+            id:             dropdownCol
+            anchors.top:    parent.top
+            anchors.left:   parent.left
+            anchors.right:  parent.right
+            anchors.margins: ScreenTools.defaultFontPixelHeight * 0.3
+            spacing:        2
+
+            Repeater {
+                model: ["A8 RGB", "Thermal RGB", "Thermal IR"]
+                delegate: Rectangle {
+                    width:   dropdownCol.width
+                    height:  ScreenTools.defaultFontPixelHeight * 2
+                    radius:  3
+                    color:   index === _activeStream
+                             ? Qt.rgba(0.2, 0.5, 1.0, 0.55)
+                             : (itemHover ? Qt.rgba(1, 1, 1, 0.12) : "transparent")
+
+                    property bool itemHover: false
+
+                    Rectangle {
+                        width:   3
+                        height:  parent.height * 0.6
+                        radius:  2
+                        anchors.left:           parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        color:   index === _activeStream ? "white" : "transparent"
+                    }
+
+                    QGCLabel {
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left:           parent.left
+                        anchors.leftMargin:     ScreenTools.defaultFontPixelWidth * 1.2
+                        text:                   modelData
+                        color:                  index === _activeStream ? "white" : Qt.rgba(1, 1, 1, 0.75)
+                        font.pointSize:         ScreenTools.smallFontPointSize
+                        font.bold:              index === _activeStream
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered:    parent.itemHover = true
+                        onExited:     parent.itemHover = false
+                        onClicked: {
+                            _activeStream   = index
+                            QGroundControl.videoManager.setActiveStreamIndex(index)
+                            _showStreamMenu = false
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ── Dismiss dropdown on outside click ─────────────────────────────
+    MouseArea {
+        anchors.fill: parent
+        visible:      _showStreamMenu && _isRtspSource
+        z:            299
+        onClicked:    _showStreamMenu = false
     }
 }

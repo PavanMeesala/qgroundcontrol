@@ -45,13 +45,15 @@ class VideoManager : public QObject
     Q_PROPERTY(QString  uvcVideoSourceID        READ uvcVideoSourceID                           NOTIFY uvcVideoSourceIDChanged)
 
     friend class VideoManagerInitTest;
+    // Add Q_PROPERTY:
+    Q_PROPERTY(int activeStreamIndex READ activeStreamIndex WRITE setActiveStreamIndex NOTIFY activeStreamIndexChanged)
+
 
 public:
     explicit VideoManager(QObject *parent = nullptr);
     ~VideoManager();
 
     static VideoManager *instance();
-
     Q_INVOKABLE void grabImage(const QString &imageFile = QString());
     Q_INVOKABLE void startRecording(const QString &videoFile = QString());
     Q_INVOKABLE void startVideo();
@@ -84,6 +86,8 @@ public:
     static bool gstreamerAppleSink();
     static bool qtmultimediaEnabled();
     static bool uvcEnabled();
+    int  activeStreamIndex() const { return _activeStreamIndex; }
+    Q_INVOKABLE void setActiveStreamIndex(int index); // implementation in .cc
 
 signals:
     void aspectRatioChanged();
@@ -100,8 +104,11 @@ signals:
     void streamingChanged();
     void uvcVideoSourceIDChanged();
     void videoSizeChanged();
+    void activeStreamIndexChanged(int index);
 
 private slots:
+    void _rtspUrl2Changed();
+    void _rtspUrl3Changed();
     void _communicationLostChanged(bool communicationLost);
     void _setActiveVehicle(Vehicle *vehicle);
     void _videoSourceChanged();
@@ -115,7 +122,7 @@ private:
         Running,
         Failed
     };
-
+    QString _getActiveRtspUrl() const;
     static bool _shouldSkipGStreamerForUnitTests();
     void _initAfterQmlIsReady();
     void _onGstInitComplete(bool success);
@@ -130,6 +137,7 @@ private:
     void _startReceiver(VideoReceiver *receiver);
     void _stopReceiver(VideoReceiver *receiver);
     static void _cleanupOldVideos();
+    int  _activeStreamIndex = 0;
 
     QList<VideoReceiver*> _videoReceivers;
     SubtitleWriter *_subtitleWriter = nullptr;

@@ -133,7 +133,6 @@ void VideoManager::startGStreamerInit()
     });
 #endif
 }
-
 bool VideoManager::waitForGStreamerInit(int timeoutMs)
 {
 #ifdef QGC_GST_STREAMING
@@ -206,6 +205,8 @@ void VideoManager::init(QQuickWindow *mainWindow)
     (void) connect(_videoSettings->videoSource(), &Fact::rawValueChanged, this, &VideoManager::_videoSourceChanged);
     (void) connect(_videoSettings->udpUrl(), &Fact::rawValueChanged, this, &VideoManager::_videoSourceChanged);
     (void) connect(_videoSettings->rtspUrl(), &Fact::rawValueChanged, this, &VideoManager::_videoSourceChanged);
+    (void) connect(_videoSettings->rtspUrl2(), &Fact::rawValueChanged, this, &VideoManager::_rtspUrl2Changed);
+    (void) connect(_videoSettings->rtspUrl3(), &Fact::rawValueChanged, this, &VideoManager::_rtspUrl3Changed);
     (void) connect(_videoSettings->tcpUrl(), &Fact::rawValueChanged, this, &VideoManager::_videoSourceChanged);
     (void) connect(_videoSettings->aspectRatio(), &Fact::rawValueChanged, this, &VideoManager::aspectRatioChanged);
     (void) connect(_videoSettings->lowLatencyMode(), &Fact::rawValueChanged, this, [this](const QVariant &value) { Q_UNUSED(value); _restartAllVideos(); });
@@ -216,6 +217,7 @@ void VideoManager::init(QQuickWindow *mainWindow)
         Q_UNUSED(value);
 #endif
     });
+
     (void) connect(MultiVehicleManager::instance(), &MultiVehicleManager::activeVehicleChanged, this, &VideoManager::_setActiveVehicle);
 
     (void) connect(this, &VideoManager::autoStreamConfiguredChanged, this, &VideoManager::_videoSourceChanged);
@@ -234,7 +236,36 @@ void VideoManager::init(QQuickWindow *mainWindow)
 
     _initialized = true;
 }
+void VideoManager::_rtspUrl2Changed()
+{
+    // Only restart if stream 1 (Thermal RGB) is currently active
+    if (_activeStreamIndex == 1) {
+        _videoSourceChanged();
+    }
+}
 
+void VideoManager::_rtspUrl3Changed()
+{
+    // Only restart if stream 2 (Thermal IR) is currently active
+    if (_activeStreamIndex == 2) {
+        _videoSourceChanged();
+    }
+}
+void VideoManager::setActiveStreamIndex(int index)
+{
+    if (index < 0 || index > 2 || index == _activeStreamIndex) return;
+    _activeStreamIndex = index;
+    emit activeStreamIndexChanged(index);
+    _videoSourceChanged();
+}
+QString VideoManager::_getActiveRtspUrl() const
+{
+    switch (_activeStreamIndex) {
+        case 1:  return _videoSettings->rtspUrl2()->rawValue().toString();
+        case 2:  return _videoSettings->rtspUrl3()->rawValue().toString();
+        default: return _videoSettings->rtspUrl()->rawValue().toString();
+    }
+}
 void VideoManager::_initAfterQmlIsReady()
 {
     if (!_mainWindow) {
@@ -743,8 +774,8 @@ bool VideoManager::_updateSettings(VideoReceiver *receiver)
         settingsChanged |= _updateVideoUri(receiver, QStringLiteral("udp265://%1").arg(_videoSettings->udpUrl()->rawValue().toString()));
     } else if (source == VideoSettings::videoSourceMPEGTS) {
         settingsChanged |= _updateVideoUri(receiver, QStringLiteral("mpegts://%1").arg(_videoSettings->udpUrl()->rawValue().toString()));
-    } else if (source == VideoSettings::videoSourceRTSP) {
-        settingsChanged |= _updateVideoUri(receiver, _videoSettings->rtspUrl()->rawValue().toString());
+    }  else if (source == VideoSettings::videoSourceRTSP) {
+    settingsChanged |= _updateVideoUri(receiver, _getActiveRtspUrl());
     } else if (source == VideoSettings::videoSourceTCP) {
         settingsChanged |= _updateVideoUri(receiver, QStringLiteral("tcp://%1").arg(_videoSettings->tcpUrl()->rawValue().toString()));
     } else if (source == VideoSettings::videoSource3DRSolo) {

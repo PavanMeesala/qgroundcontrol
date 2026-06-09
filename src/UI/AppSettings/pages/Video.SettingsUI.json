@@ -31,6 +31,14 @@
                     "showWhen": "videoSource === QGroundControl.settingsManager.videoSettings.rtspVideoSource"
                 },
                 {
+                    "setting": "videoSettings.rtspUrl2",
+                    "showWhen": "videoSource === QGroundControl.settingsManager.videoSettings.rtspVideoSource"
+                },
+                {
+                    "setting": "videoSettings.rtspUrl3",
+                    "showWhen": "videoSource === QGroundControl.settingsManager.videoSettings.rtspVideoSource"
+                },
+                {
                     "setting": "videoSettings.tcpUrl",
                     "showWhen": "videoSource === QGroundControl.settingsManager.videoSettings.tcpVideoSource"
                 },

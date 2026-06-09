@@ -22,11 +22,29 @@
         },
         {
             "name": "rtspUrl",
-            "shortDesc": "Network address for RTSP video stream (e.g. rtsp://192.168.42.1:554/live).",
-            "longDesc": "RTSP url address and port to bind to for video stream. Example: rtsp://192.168.42.1:554/live",
+            "shortDesc": "Network address for RTSP video stream (e.g. rtsp://192.168.144.25:8554/main.264).",
+            "longDesc": "RTSP url address and port to bind to for video stream. Example: rtsp://192.168.144.25:8554/main.264",
             "type": "string",
-            "default": "",
+            "default": "rtsp://192.168.144.25:8554/main.264",
             "label": "RTSP URL",
+            "keywords": "rtsp,video url,stream url"
+        },
+        {
+            "name": "rtspUrl2",
+            "shortDesc": "Network address for RTSP video stream (e.g. rtsp://192.168.144.25:8554/video1).",
+            "longDesc": "RTSP url address and port to bind to for video stream. Example: rtsp://192.168.144.25:8554/video1",
+            "type": "string",
+            "default": "rtsp://192.168.144.25:8554/video1",
+            "label": "RTSP URL FOR THERMAL",
+            "keywords": "rtsp,video url,stream url"
+        },
+        {
+            "name": "rtspUrl3",
+            "shortDesc": "Network address for RTSP video stream (e.g. rtsp://192.168.144.25:8554/video2).",
+            "longDesc": "RTSP url address and port to bind to for video stream. Example: rtsp://192.168.144.25:8554/video2",
+            "type": "string",
+            "default": "rtsp://192.168.144.25:8554/video2",
+            "label": "RTSP URL FOR IR",
             "keywords": "rtsp,video url,stream url"
         },
         {
