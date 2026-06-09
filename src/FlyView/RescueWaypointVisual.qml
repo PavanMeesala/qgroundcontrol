@@ -9,16 +9,16 @@ MapQuickItem {
 
     coordinate: waypoint.coordinate
 
-    anchorPoint.x: 14
-    anchorPoint.y: 14
+    anchorPoint.x: 6
+    anchorPoint.y: 6
 
     sourceItem: Rectangle {
 
-        width: 28
-        height: 28
-        radius: 14
+        width: 12
+        height: 12
+        radius: 6
 
-        border.width: 2
+        border.width: 1
         border.color: "white"
 
         color:
@@ -28,11 +28,11 @@ MapQuickItem {
                 "yellow" :
                 "red"
 
-        Text {
-            anchors.centerIn: parent
-            text: index
-            font.bold: true
-            color: "black"
-        }
+        // Text {
+        //     anchors.centerIn: parent
+        //     text: index
+        //     font.bold: true
+        //     color: "black"
+        // }
     }
 }

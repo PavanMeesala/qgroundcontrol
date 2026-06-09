@@ -367,19 +367,19 @@ FlightMap {
             function onPointsCleared() { trajectoryPolyline.path = [] }
         }
     }
-    // Completed rescue path — red, blends with drone trajectory
-    MapPolyline {
-        id: rescueCompletedPolyline
-        visible:
-            !pipMode &&
-            _activeVehicle &&
-            _activeVehicle.flightMode === "RESCUE" &&
-            completedRescuePath.length > 1
-        line.width: 3
-        line.color: "red"
-        z: QGroundControl.zOrderTrajectoryLines + 5
-        path: completedRescuePath
-    }
+    // // Completed rescue path — red, blends with drone trajectory
+    // MapPolyline {
+    //     id: rescueCompletedPolyline
+    //     visible:
+    //         !pipMode &&
+    //         _activeVehicle &&
+    //         _activeVehicle.flightMode === "RESCUE" &&
+    //         completedRescuePath.length > 1
+    //     line.width: 3
+    //     line.color: "red"
+    //     z: QGroundControl.zOrderTrajectoryLines + 5
+    //     path: completedRescuePath
+    // }
 
     // Upcoming rescue path — magenta, shows future waypoints
     MapPolyline {
