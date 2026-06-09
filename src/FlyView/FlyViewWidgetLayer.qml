@@ -138,25 +138,25 @@ Item {
         }
     }
 
-    FlyViewToolStrip {
-        id:                     toolStrip
-        anchors.left:           parent.left
-        anchors.top:            parent.top
-        z:                      QGroundControl.zOrderWidgets
-        maxHeight:              parent.height - y - parentToolInsets.bottomEdgeLeftInset - _toolsMargin
-        visible:                !QGroundControl.videoManager.fullScreen
+    // FlyViewToolStrip {
+    //     id:                     toolStrip
+    //     anchors.left:           parent.left
+    //     anchors.top:            parent.top
+    //     z:                      QGroundControl.zOrderWidgets
+    //     maxHeight:              parent.height - y - parentToolInsets.bottomEdgeLeftInset - _toolsMargin
+    //     visible:                !QGroundControl.videoManager.fullScreen
 
-        onDisplayPreFlightChecklist: {
-            if (!preFlightChecklistLoader.active) {
-                preFlightChecklistLoader.active = true
-            }
-            preFlightChecklistLoader.item.open()
-        }
+    //     onDisplayPreFlightChecklist: {
+    //         if (!preFlightChecklistLoader.active) {
+    //             preFlightChecklistLoader.active = true
+    //         }
+    //         preFlightChecklistLoader.item.open()
+    //     }
 
-        property real topEdgeLeftInset:     visible ? y + height : 0
-        property real leftEdgeTopInset:     visible ? x + width : 0
-        property real leftEdgeCenterInset:  leftEdgeTopInset
-    }
+    //     property real topEdgeLeftInset:     visible ? y + height : 0
+    //     property real leftEdgeTopInset:     visible ? x + width : 0
+    //     property real leftEdgeCenterInset:  leftEdgeTopInset
+    // }
 
     VehicleWarnings {
         anchors.centerIn:   parent
