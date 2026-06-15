@@ -25,7 +25,7 @@ Item {
     property var parentToolInsets               // These insets tell you what screen real estate is available for positioning the controls in your overlay
     property var totalToolInsets:   _toolInsets // These are the insets for your custom overlay additions
     property var mapControl
-
+    property var mgr: _activeVehicle ? _activeVehicle.rescueManager : null
     property bool paramsReady: vehicle !== null
                            && vehicle.parameterManager !== null
 
@@ -204,6 +204,84 @@ Item {
             }
         }
 
+    }
+    // ================= RESCUE START BUTTON =================
+    Rectangle {
+        id: rescueButton
+
+        width: 100
+        height: 30
+        radius: 8
+
+        anchors.top: parent.top
+        anchors.topMargin: 30
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        visible: mgr !== null
+
+        color: {
+            if (!mgr)
+                return "#555555"
+
+            if (mgr.missionInProgress)
+                return "#e67e22"      // Orange
+
+            if (mgr.canStartMission)
+                return "#27ae60"      // Green
+
+            return "#555555"          // Grey
+        }
+
+        border.color: "#222"
+        border.width: 1
+
+        Behavior on color {
+            ColorAnimation { duration: 200 }
+        }
+
+        Text {
+            anchors.centerIn: parent
+
+            text: {
+                if (!mgr)
+                    return "NO MGR"
+
+                if (mgr.missionInProgress)
+                    return "SEARCHING"
+
+                if (mgr.canStartMission)
+                    return "START"
+
+                return "WAITING"
+            }
+
+            font.pixelSize: 12
+            font.bold: true
+
+            color: "white"
+
+            style: Text.Outline
+            styleColor: "black"
+
+            renderType: Text.NativeRendering
+        }
+
+        MouseArea {
+            anchors.fill: parent
+
+            enabled: mgr && mgr.canStartMission
+
+            onClicked: {
+
+                var vehicle =
+                    QGroundControl.multiVehicleManager.activeVehicle
+
+                if (vehicle) {
+                    vehicle.sendRescueStartSearch()
+                    console.log("RESCUE_START_SEARCH sent")
+                }
+            }
+        }
     }
     Popup {
         id: settingsPopup

@@ -297,7 +297,28 @@ void Vehicle::_sendServoCommand(int servo, int pwm)
 
 //     sendMessageMultiple(msg);
 // }
+void Vehicle::sendRescueStartSearch()
+{
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
 
+    if (!sharedLink) {
+        return;
+    }
+
+    mavlink_message_t msg;
+
+    mavlink_msg_rescue_start_search_pack_chan(
+        MAVLinkProtocol::instance()->getSystemId(),
+        MAVLinkProtocol::getComponentId(),
+        sharedLink->mavlinkChannel(),
+        &msg,
+        id(),                  // target system
+        MAV_COMP_ID_AUTOPILOT1,
+        1                      // start
+    );
+
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+}
 // ✅ Deploy / Retract
 void Vehicle::deployLifebuoy(bool deploy)
 {
@@ -723,7 +744,20 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
             return;
         }
     }
+    if (message.msgid == MAVLINK_MSG_ID_RESCUE_STATUS) {
 
+        mavlink_rescue_status_t pkt;
+
+        mavlink_msg_rescue_status_decode(
+            &message,
+            &pkt);
+
+        _rescueManager->handleRescueStatus(
+            pkt.phase,
+            pkt.wp_total,
+            pkt.wp_current,
+            pkt.wps_loaded);
+    }
     // Try to auto-detect signing key from incoming signed packets
     if (MAVLinkSigning::isMessageSigned(message) && !MAVLinkSigning::isSigningEnabled(static_cast<mavlink_channel_t>(link->mavlinkChannel()))) {
         const QString detectedKeyName = MAVLinkSigning::tryDetectKey(static_cast<mavlink_channel_t>(link->mavlinkChannel()), message);

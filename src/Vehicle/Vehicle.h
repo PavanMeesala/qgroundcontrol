@@ -115,6 +115,7 @@ class Vehicle : public VehicleFactGroup, public VehicleTypes
 /*                         LIFEBUOY CONTROL                                  */
 /*===========================================================================*/
 public:
+    Q_INVOKABLE void sendRescueStartSearch();
     Q_INVOKABLE void deployLifebuoy(bool deploy);
     Q_INVOKABLE void setServoSettings(int servo1,
                                     int servo2,

@@ -208,19 +208,32 @@ FlightMap {
         }
         rescuePath = temp
 
+        // ---------------- Completed path ----------------
         var completed = []
-        for (var j = 0; j <= activeIdx && j < model.count; j++) {
+
+        for (var j = 0; j < activeIdx && j < model.count; j++) {
             completed.push(model.get(j).coordinate)
         }
-        if (_activeVehicle.coordinate.isValid && activeIdx >= 0) {
+
+        if (_activeVehicle.coordinate.isValid) {
             completed.push(_activeVehicle.coordinate)
         }
+
         completedRescuePath = completed
 
+        // ---------------- Upcoming path ----------------
         var upcoming = []
-        for (var k = activeIdx; k < model.count; k++) {
+
+        if (_activeVehicle.coordinate.isValid) {
+            upcoming.push(_activeVehicle.coordinate)
+        }
+
+        var startIdx = Math.max(0, activeIdx)
+
+        for (var k = startIdx; k < model.count; k++) {
             upcoming.push(model.get(k).coordinate)
         }
+
         upcomingRescuePath = upcoming
 
         console.log("RESCUE: completedPath length =", completedRescuePath.length)
@@ -390,7 +403,7 @@ FlightMap {
             _activeVehicle.flightMode === "RESCUE" &&
             upcomingRescuePath.length > 1
         line.width: 4
-        line.color: "magenta"
+        line.color: "yellow"
         z: QGroundControl.zOrderTrajectoryLines + 10
         path: upcomingRescuePath
     }
