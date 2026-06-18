@@ -112,9 +112,10 @@ class Vehicle : public VehicleFactGroup, public VehicleTypes
 
     /*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                         LIFEBUOY CONTROL                                  */
+/*                         Custom                                  */
 /*===========================================================================*/
 public:
+    Q_INVOKABLE void rescueInsertWaypoint(double latitude, double longitude);
     Q_INVOKABLE void sendRescueStartSearch();
     Q_INVOKABLE void deployLifebuoy(bool deploy);
     Q_INVOKABLE void setServoSettings(int servo1,

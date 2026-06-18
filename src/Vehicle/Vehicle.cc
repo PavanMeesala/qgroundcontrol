@@ -374,7 +374,27 @@ void Vehicle::setServoSettings(int aux1,
 
     qDebug() << "Servo params written";
 }
+void Vehicle::rescueInsertWaypoint(double latitude,
+                                   double longitude)
+{
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink) {
+        qCDebug(VehicleLog) << "Primary Link Gone!";
+        return;
+    }
 
+    mavlink_message_t msg;
+
+    mavlink_msg_rescue_insert_wp_pack(
+        MAVLinkProtocol::instance()->getSystemId(),
+        MAVLinkProtocol::getComponentId(),
+        &msg,
+        static_cast<int32_t>(latitude * 1e7),
+        static_cast<int32_t>(longitude * 1e7)
+    );
+
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+}
 // ✅ Write parameter
 void Vehicle::_setParam(const QString& name, float value)
 {

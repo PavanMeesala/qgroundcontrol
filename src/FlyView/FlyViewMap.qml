@@ -861,6 +861,22 @@ FlightMap {
                             }
                         }
                     }
+                    QGCButton {
+                        Layout.fillWidth: true
+
+                        text: qsTr("Set as Next Waypoint")
+
+                        visible: _activeVehicle
+
+                        onClicked: {
+                            mapClickDropPanel.close()
+
+                            _activeVehicle.rescueInsertWaypoint(
+                                mapClickCoord.latitude,
+                                mapClickCoord.longitude
+                            )
+                        }
+                    }
 
                     QGCButton {
                         Layout.fillWidth:   true
