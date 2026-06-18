@@ -9,6 +9,8 @@ import QGroundControl.FactControls
 
 Item {
     id:         _root
+    property int developerTapCount: 0
+    property bool developerGestureEnabled: false
 
     property Fact   _editorDialogFact: Fact { }
     property int    _rowHeight:         ScreenTools.defaultFontPixelHeight * 2
@@ -167,11 +169,17 @@ Item {
                 }
             }
         }
-
         QGCButton {
-            Layout.alignment:   Qt.AlignRight
-            text:               qsTr("Tools")
-            onClicked:          toolsMenu.popup()
+            text: "DEV"
+
+            onClicked: {
+                developerPasswordDialog.open()
+            }
+        }
+        QGCButton {
+            Layout.alignment: Qt.AlignRight
+            text: qsTr("Tools")
+            onClicked: toolsMenu.popup()
         }
     }
 
@@ -413,6 +421,58 @@ Item {
                 onClicked: mouse => {
                     _editorDialogFact = fact
                     editorDialogFactory.open()
+                }
+            }
+        }
+    }
+    Dialog {
+        id: developerPasswordDialog
+
+        modal: true
+
+        anchors.centerIn: Overlay.overlay
+
+        title: qsTr("Developer Unlock")
+
+        Column {
+            spacing: 10
+            padding: 20
+
+            TextField {
+                id: developerPasswordField
+
+                width: 250
+
+                echoMode: TextInput.Password
+
+                placeholderText: qsTr("Password")
+            }
+
+            Row {
+                spacing: 10
+
+                Button {
+                    text: qsTr("Unlock")
+
+                    onClicked: {
+
+                        if (controller.unlockDeveloperMode(
+                                    developerPasswordField.text)) {
+
+                            developerPasswordDialog.close()
+
+                            developerPasswordField.text = ""
+                        }
+                    }
+                }
+
+                Button {
+                    text: qsTr("Cancel")
+
+                    onClicked: {
+                        developerPasswordDialog.close()
+                        developerPasswordField.text = ""
+                    }
                 }
             }
         }

@@ -183,25 +183,39 @@ ParameterEditorController::~ParameterEditorController()
 void ParameterEditorController::_buildListsForComponent(int compId)
 {
     for (const QString& factName: _parameterMgr->parameterNames(compId)) {
+
         Fact* fact = _parameterMgr->getParameter(compId, factName);
 
+        if (!_developerUnlocked) {
+
+            if (!factName.startsWith("RSC_")) {
+                continue;
+            }
+
+            if (fact->category() != "Advanced") {
+                continue;
+            }
+        }
+
         ParameterEditorCategory* category = nullptr;
+
         if (_mapCategoryName2Category.contains(fact->category())) {
             category = _mapCategoryName2Category[fact->category()];
         } else {
-            category        = new ParameterEditorCategory(this);
-            category->name  = fact->category();
+            category = new ParameterEditorCategory(this);
+            category->name = fact->category();
             _mapCategoryName2Category[fact->category()] = category;
             _categories.append(category);
         }
 
         ParameterEditorGroup* group = nullptr;
+
         if (category->mapGroupName2Group.contains(fact->group())) {
             group = category->mapGroupName2Group[fact->group()];
         } else {
-            group               = new ParameterEditorGroup(this);
-            group->componentId  = compId;
-            group->name         = fact->group();
+            group = new ParameterEditorGroup(this);
+            group->componentId = compId;
+            group->name = fact->group();
             category->mapGroupName2Group[fact->group()] = group;
             category->groups.append(group);
         }
@@ -209,7 +223,51 @@ void ParameterEditorController::_buildListsForComponent(int compId)
         group->facts.append(fact);
     }
 }
+bool ParameterEditorController::unlockDeveloperMode(const QString& password)
+{
+    // Change this password
+    static const QString kPassword = QStringLiteral("AethOS123");
 
+    if (password != kPassword) {
+        return false;
+    }
+
+    if (_developerUnlocked) {
+        return true;
+    }
+
+    _developerUnlocked = true;
+
+    emit developerUnlockedChanged();
+
+    _categories.clear();
+    _mapCategoryName2Category.clear();
+
+    _buildLists();
+
+    emit currentCategoryChanged();
+    emit currentGroupChanged();
+
+    return true;
+}
+void ParameterEditorController::lockDeveloperMode()
+{
+    if (!_developerUnlocked) {
+        return;
+    }
+
+    _developerUnlocked = false;
+
+    emit developerUnlockedChanged();
+
+    _categories.clear();
+    _mapCategoryName2Category.clear();
+
+    _buildLists();
+
+    emit currentCategoryChanged();
+    emit currentGroupChanged();
+}
 void ParameterEditorController::_buildLists(void)
 {
     // Autopilot component should always be first list
@@ -476,6 +534,16 @@ void ParameterEditorController::resetAllToVehicleConfiguration(void)
 
 bool ParameterEditorController::_shouldShow(Fact* fact) const
 {
+    if (!_developerUnlocked) {
+
+        if (!fact->name().startsWith("RSC_")) {
+            return false;
+        }
+
+        if (fact->category() != "Advanced") {
+            return false;
+        }
+    }
     if (_showModifiedOnly) {
         if (!fact->defaultValueAvailable() || fact->valueEqualsDefault()) {
             return false;

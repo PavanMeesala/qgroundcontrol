@@ -133,6 +133,7 @@ class ParameterEditorController : public FactPanelController
     Q_PROPERTY(bool                 showModifiedOnly        MEMBER _showModifiedOnly                                    NOTIFY showModifiedOnlyChanged)
     Q_PROPERTY(bool                 showFavoritesOnly       MEMBER _showFavoritesOnly                                   NOTIFY showFavoritesOnlyChanged)
     Q_PROPERTY(QStringList          favoriteParameterNames  READ favoriteParameterNames                                 NOTIFY favoritesChanged)
+    Q_PROPERTY(bool developerUnlocked                       READ developerUnlocked                                      NOTIFY developerUnlockedChanged)
 
     // These property are related to the diff associated with a load from file
     Q_PROPERTY(bool                 diffOtherVehicle        MEMBER _diffOtherVehicle                                    NOTIFY diffOtherVehicleChanged)
@@ -140,6 +141,10 @@ class ParameterEditorController : public FactPanelController
     Q_PROPERTY(QmlObjectListModel*  diffList                READ diffList                                               CONSTANT)
 
 public:
+    bool developerUnlocked() const { return _developerUnlocked; }
+
+    Q_INVOKABLE bool unlockDeveloperMode(const QString& password);
+    Q_INVOKABLE void lockDeveloperMode();
     explicit ParameterEditorController(QObject *parent = nullptr);
     ~ParameterEditorController();
 
@@ -172,6 +177,7 @@ signals:
     void diffOtherVehicleChanged        (bool diffOtherVehicle);
     void diffMultipleComponentsChanged  (bool diffMultipleComponents);
     void parametersChanged              (void);
+    void developerUnlockedChanged();
 
 private slots:
     void _currentCategoryChanged(void);
@@ -197,6 +203,7 @@ private:
     bool                        _showFavoritesOnly      = false;
     bool                        _diffOtherVehicle       = false;
     bool                        _diffMultipleComponents = false;
+    bool                        _developerUnlocked      = false;
     QSet<QString>               _favoriteNames;
 
     QmlObjectListModel          _categories;
