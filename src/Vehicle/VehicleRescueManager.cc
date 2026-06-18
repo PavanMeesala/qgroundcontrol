@@ -1,17 +1,32 @@
 #include "VehicleRescueManager.h"
 #include "RescueWaypoint.h"
+
 VehicleRescueManager::VehicleRescueManager(QObject* parent)
     : QObject(parent)
 {
 }
-void VehicleRescueManager::handleRescueStatus(uint8_t phase, uint8_t wp_total,
-                                               uint8_t wp_current, uint8_t wps_loaded)
+
+void VehicleRescueManager::handleRescueStatus(
+    uint8_t phase,
+    uint8_t wp_total,
+    uint8_t wp_current,
+    uint8_t wps_loaded)
 {
+    Phase oldPhase = _phase;
+
     _phase     = static_cast<Phase>(phase);
     _totalWP   = wp_total;
     _currentWP = wp_current;
     _wpsLoaded = (wps_loaded == 1);
+
     emit statusChanged();
+
+    // Force path redraw whenever INSERT_NAV occurs
+    if (_phase == Phase::INSERT_NAV &&
+        oldPhase != Phase::INSERT_NAV) {
+
+        emit pathNeedsRefresh();
+    }
 }
 
 bool VehicleRescueManager::missionInProgress() const
@@ -19,34 +34,54 @@ bool VehicleRescueManager::missionInProgress() const
     return _phase == Phase::TAKEOFF
         || _phase == Phase::TAKING_OFF
         || _phase == Phase::WP_NAV
+        || _phase == Phase::INSERT_NAV
+        || _phase == Phase::CENTERING
+        || _phase == Phase::DEPLOYING
         || _phase == Phase::GUIDED;
 }
 
 bool VehicleRescueManager::canStartMission() const
 {
-    return _phase == Phase::IDLE && _wpsLoaded;
+    return _phase == Phase::WPS_GENERATED;
 }
 
 QString VehicleRescueManager::statusText() const
 {
     switch (_phase) {
+
     case Phase::IDLE:
-        return _wpsLoaded
-            ? QStringLiteral("Ready — press Start Search")
-            : QStringLiteral("Waiting for waypoints...");
+        return QStringLiteral("Generate rescue waypoints");
+
+    case Phase::WPS_GENERATED:
+        return QStringLiteral("Waypoints generated - confirm start");
+
     case Phase::TAKEOFF:
         return QStringLiteral("Waiting to arm...");
+
     case Phase::TAKING_OFF:
         return QStringLiteral("Taking off...");
+
     case Phase::WP_NAV:
         return QString("Searching: WP %1 / %2")
-                   .arg(_currentWP + 1)
-                   .arg(_totalWP);
+            .arg(_currentWP + 1)
+            .arg(_totalWP);
+
+    case Phase::INSERT_NAV:
+        return QStringLiteral("Inserting target waypoint");
+
+    case Phase::CENTERING:
+        return QStringLiteral("Centering over target");
+
+    case Phase::DEPLOYING:
+        return QStringLiteral("Deploying payload");
+
     case Phase::GUIDED:
-        return QStringLiteral("Target detected — OBC in control");
+        return QStringLiteral("Target detected - OBC control");
     }
+
     return QStringLiteral("Unknown");
 }
+
 void VehicleRescueManager::clear()
 {
     _rescuePoints.clearAndDeleteContents();
@@ -55,6 +90,7 @@ void VehicleRescueManager::clear()
 
     emit activeIndexChanged();
     emit rescuePointsChanged();
+    emit pathNeedsRefresh();
 }
 
 void VehicleRescueManager::handleRescueWaypoint(
@@ -75,7 +111,9 @@ void VehicleRescueManager::handleRescueWaypoint(
             lon / 1e7));
 
     _rescuePoints.append(wp);
+
     emit rescuePointsChanged();
+    emit pathNeedsRefresh();
 }
 
 void VehicleRescueManager::handleWaypointReached(
@@ -103,4 +141,5 @@ void VehicleRescueManager::handleWaypointReached(
     }
 
     emit activeIndexChanged();
+    emit pathNeedsRefresh();
 }

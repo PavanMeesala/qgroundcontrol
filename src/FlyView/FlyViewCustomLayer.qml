@@ -205,84 +205,84 @@ Item {
         }
 
     }
-    // ================= RESCUE START BUTTON =================
-    Rectangle {
-        id: rescueButton
+    // // ================= RESCUE START BUTTON =================
+    // Rectangle {
+    //     id: rescueButton
 
-        width: 100
-        height: 30
-        radius: 8
+    //     width: 100
+    //     height: 30
+    //     radius: 8
 
-        anchors.top: parent.top
-        anchors.topMargin: 30
-        anchors.horizontalCenter: parent.horizontalCenter
+    //     anchors.top: parent.top
+    //     anchors.topMargin: 30
+    //     anchors.horizontalCenter: parent.horizontalCenter
 
-        visible: mgr !== null
+    //     visible: mgr !== null
 
-        color: {
-            if (!mgr)
-                return "#555555"
+    //     color: {
+    //         if (!mgr)
+    //             return "#555555"
 
-            if (mgr.missionInProgress)
-                return "#e67e22"      // Orange
+    //         if (mgr.missionInProgress)
+    //             return "#e67e22"      // Orange
 
-            if (mgr.canStartMission)
-                return "#27ae60"      // Green
+    //         if (mgr.canStartMission)
+    //             return "#27ae60"      // Green
 
-            return "#555555"          // Grey
-        }
+    //         return "#555555"          // Grey
+    //     }
 
-        border.color: "#222"
-        border.width: 1
+    //     border.color: "#222"
+    //     border.width: 1
 
-        Behavior on color {
-            ColorAnimation { duration: 200 }
-        }
+    //     Behavior on color {
+    //         ColorAnimation { duration: 200 }
+    //     }
 
-        Text {
-            anchors.centerIn: parent
+    //     Text {
+    //         anchors.centerIn: parent
 
-            text: {
-                if (!mgr)
-                    return "NO MGR"
+    //         text: {
+    //             if (!mgr)
+    //                 return "NO MGR"
 
-                if (mgr.missionInProgress)
-                    return "SEARCHING"
+    //             if (mgr.missionInProgress)
+    //                 return "SEARCHING"
 
-                if (mgr.canStartMission)
-                    return "START"
+    //             if (mgr.canStartMission)
+    //                 return "START"
 
-                return "WAITING"
-            }
+    //             return "WAITING"
+    //         }
 
-            font.pixelSize: 12
-            font.bold: true
+    //         font.pixelSize: 12
+    //         font.bold: true
 
-            color: "white"
+    //         color: "white"
 
-            style: Text.Outline
-            styleColor: "black"
+    //         style: Text.Outline
+    //         styleColor: "black"
 
-            renderType: Text.NativeRendering
-        }
+    //         renderType: Text.NativeRendering
+    //     }
 
-        MouseArea {
-            anchors.fill: parent
+    //     MouseArea {
+    //         anchors.fill: parent
 
-            enabled: mgr && mgr.canStartMission
+    //         enabled: mgr && mgr.canStartMission
 
-            onClicked: {
+    //         onClicked: {
 
-                var vehicle =
-                    QGroundControl.multiVehicleManager.activeVehicle
+    //             var vehicle =
+    //                 QGroundControl.multiVehicleManager.activeVehicle
 
-                if (vehicle) {
-                    vehicle.sendRescueStartSearch()
-                    console.log("RESCUE_START_SEARCH sent")
-                }
-            }
-        }
-    }
+    //             if (vehicle) {
+    //                 vehicle.sendRescueStartSearch()
+    //                 console.log("RESCUE_START_SEARCH sent")
+    //             }
+    //         }
+    //     }
+    // }
     Popup {
         id: settingsPopup
 

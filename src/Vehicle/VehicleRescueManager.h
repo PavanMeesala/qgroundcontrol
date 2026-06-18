@@ -17,6 +17,7 @@ class VehicleRescueManager : public QObject
     Q_PROPERTY(int currentWP READ currentWP NOTIFY statusChanged)
     Q_PROPERTY(int totalWP READ totalWP NOTIFY statusChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY statusChanged)
+    Q_PROPERTY(int phase READ phase NOTIFY statusChanged)
 
     // Path display
     Q_PROPERTY(QmlObjectListModel* rescuePoints READ rescuePoints NOTIFY rescuePointsChanged)
@@ -47,26 +48,53 @@ public:
 
     bool missionInProgress() const;
     bool canStartMission() const;
-    bool wpsLoaded() const { return _wpsLoaded; }
-    int currentWP() const { return static_cast<int>(_currentWP) + 1; }
-    int totalWP() const { return static_cast<int>(_totalWP); }
+
+    bool wpsLoaded() const {
+        return _wpsLoaded;
+    }
+
+    int phase() const {
+        return static_cast<int>(_phase);
+    }
+
+    int currentWP() const {
+        return static_cast<int>(_currentWP) + 1;
+    }
+
+    int totalWP() const {
+        return static_cast<int>(_totalWP);
+    }
+
     QString statusText() const;
 
-    QmlObjectListModel* rescuePoints() { return &_rescuePoints; }
-    int activeIndex() const { return _activeIndex; }
+    QmlObjectListModel* rescuePoints() {
+        return &_rescuePoints;
+    }
+
+    int activeIndex() const {
+        return _activeIndex;
+    }
 
 signals:
     void statusChanged();
     void rescuePointsChanged();
     void activeIndexChanged();
 
+    // Used by QML to redraw path
+    void pathNeedsRefresh();
+
 private:
+
     enum class Phase : uint8_t {
-        IDLE        = 0,
-        TAKEOFF     = 1,
-        TAKING_OFF  = 2,
-        WP_NAV      = 3,
-        GUIDED      = 4,
+        IDLE           = 0,
+        TAKEOFF        = 1,
+        TAKING_OFF     = 2,
+        WP_NAV         = 3,
+        INSERT_NAV     = 4,
+        CENTERING      = 5,
+        DEPLOYING      = 6,
+        GUIDED         = 7,
+        WPS_GENERATED  = 8
     };
 
     Phase   _phase     { Phase::IDLE };

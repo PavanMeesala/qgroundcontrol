@@ -395,6 +395,32 @@ void Vehicle::rescueInsertWaypoint(double latitude,
 
     sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
 }
+void Vehicle::sendGenerateWps(uint16_t length)
+{
+    SharedLinkInterfacePtr sharedLink =
+        vehicleLinkManager()->primaryLink().lock();
+
+    if (!sharedLink) {
+        return;
+    }
+
+    mavlink_message_t msg;
+
+    mavlink_generate_wps_t pkt{};
+    pkt.target_system = id();
+    pkt.deploy = 1;
+    pkt.length = length;
+
+    mavlink_msg_generate_wps_encode(
+        MAVLinkProtocol::instance()->getSystemId(),
+        MAVLinkProtocol::getComponentId(),
+        &msg,
+        &pkt
+    );
+
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    qDebug() << "GENERATE_WPS sent. Length =" << length;
+}
 // ✅ Write parameter
 void Vehicle::_setParam(const QString& name, float value)
 {

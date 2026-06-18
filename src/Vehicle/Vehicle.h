@@ -117,6 +117,7 @@ class Vehicle : public VehicleFactGroup, public VehicleTypes
 public:
     Q_INVOKABLE void rescueInsertWaypoint(double latitude, double longitude);
     Q_INVOKABLE void sendRescueStartSearch();
+    Q_INVOKABLE void sendGenerateWps(uint16_t length);
     Q_INVOKABLE void deployLifebuoy(bool deploy);
     Q_INVOKABLE void setServoSettings(int servo1,
                                     int servo2,

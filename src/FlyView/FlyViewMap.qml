@@ -45,6 +45,22 @@ FlightMap {
     property var completedRescuePath: []
     property var upcomingRescuePath: []
     property bool wasArmed: false
+    property var rescueMgr:_activeVehicle ? _activeVehicle.rescueManager : null
+    readonly property int phaseIdle:            0
+    readonly property int phaseTakeoff:         1
+    readonly property int phaseTakingOff:       2
+    readonly property int phaseWpNav:           3
+    readonly property int phaseInsertNav:       4
+    readonly property int phaseCentering:       5
+    readonly property int phaseDeploying:       6
+    readonly property int phaseGuided:          7
+    readonly property int phaseWpsGenerated:    8
+
+    property bool isIdle:rescueMgr && rescueMgr.phase === phaseIdle
+
+    property bool isWpsGenerated: rescueMgr && rescueMgr.phase === phaseWpsGenerated
+
+    property bool isMissionActive:rescueMgr && rescueMgr.phase >= phaseTakeoff && rescueMgr.phase <= phaseGuided
 
     function _adjustMapZoomForPipMode() {
         _saveZoomLevelSetting = false
@@ -211,11 +227,13 @@ FlightMap {
         // ---------------- Completed path ----------------
         var completed = []
 
-        for (var j = 0; j < activeIdx && j < model.count; j++) {
+        for (var j = 0; j <= activeIdx && j < model.count; j++) {
             completed.push(model.get(j).coordinate)
         }
 
-        if (_activeVehicle.coordinate.isValid) {
+        if (_activeVehicle.coordinate.isValid &&
+            activeIdx >= 0) {
+
             completed.push(_activeVehicle.coordinate)
         }
 
@@ -224,11 +242,13 @@ FlightMap {
         // ---------------- Upcoming path ----------------
         var upcoming = []
 
-        if (_activeVehicle.coordinate.isValid) {
+        if (_activeVehicle.coordinate.isValid &&
+            activeIdx < model.count) {
+
             upcoming.push(_activeVehicle.coordinate)
         }
 
-        var startIdx = Math.max(0, activeIdx)
+        var startIdx = Math.max(activeIdx, 0)
 
         for (var k = startIdx; k < model.count; k++) {
             upcoming.push(model.get(k).coordinate)
@@ -291,7 +311,30 @@ FlightMap {
             }
         }
     }
+    Connections {
+        target: rescueMgr
+        ignoreUnknownSignals: true
 
+        function onPathNeedsRefresh() {
+            console.log("RESCUE: path refresh requested")
+            updateRescuePath()
+        }
+
+        function onStatusChanged() {
+            updateRescuePath()
+        }
+
+        function onRescuePointsChanged() {
+            updateRescuePath()
+        }
+
+        function onActiveIndexChanged() {
+            updateRescuePath()
+        }
+        function onPathNeedsRefresh() {
+            updateRescuePath()
+        }
+    }
     MapFitFunctions {
         id:                         mapFitFunctions // The name for this id cannot be changed without breaking references outside of this code. Beware!
         map:                        _root
@@ -406,7 +449,20 @@ FlightMap {
         line.color: "yellow"
         z: QGroundControl.zOrderTrajectoryLines + 10
         path: upcomingRescuePath
+        Connections {
+            target: rescueMgr
+
+            function onPathNeedsRefresh() {
+                console.log("RESCUE: path refresh requested")
+                updateRescuePath()
+            }
+
+            function onStatusChanged() {
+                updateRescuePath()
+            }
+        }
     }
+
     MapItemView {
 
         visible:
@@ -951,6 +1007,250 @@ FlightMap {
             position = _root.mapToItem(globals.parent, position)
             var dropPanel = mapClickDropPanelComponent.createObject(mainWindow, { mapClickCoord: clickCoord, clickRect: Qt.rect(position.x, position.y, 0, 0) })
             dropPanel.open()
+        }
+    }
+    Rectangle {
+        id: rescuePanel
+
+        visible: rescueMgr !== null
+
+        width: 220
+        height: 130
+
+        radius: 8
+
+        color: "#202020"
+        border.color: "#444"
+
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 50
+
+        readonly property int PHASE_IDLE: 0
+        readonly property int PHASE_WPS_GENERATED: 8
+
+        property bool isIdle:
+            rescueMgr && rescueMgr.phase === PHASE_IDLE
+
+        property bool isWpsGenerated:
+            rescueMgr && rescueMgr.phase === PHASE_WPS_GENERATED
+
+        property bool missionRunning:
+            rescueMgr && rescueMgr.missionInProgress
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 6
+
+            //--------------------------------------
+            // STATUS
+            //--------------------------------------
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                text:
+                    rescueMgr ?
+                    rescueMgr.statusText :
+                    ""
+
+                color: "white"
+
+                font.pixelSize: 11
+            }
+
+            //--------------------------------------
+            // GENERATE BUTTON
+            //--------------------------------------
+
+            Rectangle {
+
+                visible: isIdle
+
+                width: 200
+                height: 34
+                radius: 6
+
+                color: "#2980b9"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "GENERATE WAYPOINTS"
+
+                    color: "white"
+                    font.bold: true
+
+                    style: Text.Outline
+                    styleColor: "black"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: generateDialog.open()
+                }
+            }
+
+            //--------------------------------------
+            // START BUTTON
+            //--------------------------------------
+
+            Rectangle {
+
+                visible: isWpsGenerated
+
+                width: 200
+                height: 34
+                radius: 6
+
+                color: "#27ae60"
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "START SEARCH"
+
+                    color: "white"
+                    font.bold: true
+
+                    style: Text.Outline
+                    styleColor: "black"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: {
+
+                        if (_activeVehicle) {
+                            _activeVehicle.sendRescueStartSearch()
+                        }
+                    }
+                }
+            }
+
+            //--------------------------------------
+            // REGENERATE
+            //--------------------------------------
+
+            Rectangle {
+
+                visible: isWpsGenerated
+
+                width: 200
+                height: 28
+                radius: 6
+
+                color: "#7f8c8d"
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "RE-GENERATE"
+
+                    color: "white"
+
+                    style: Text.Outline
+                    styleColor: "black"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: generateDialog.open()
+                }
+            }
+
+            //--------------------------------------
+            // MISSION RUNNING
+            //--------------------------------------
+
+            Rectangle {
+
+                visible: missionRunning
+
+                width: 200
+                height: 34
+                radius: 6
+
+                color: "#e67e22"
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "MISSION IN PROGRESS"
+
+                    color: "white"
+                    font.bold: true
+
+                    style: Text.Outline
+                    styleColor: "black"
+                }
+            }
+
+            //--------------------------------------
+            // WP COUNTER
+            //--------------------------------------
+
+            Text {
+
+                visible:
+                    missionRunning &&
+                    rescueMgr &&
+                    rescueMgr.totalWP > 0
+
+                text:
+                    "WP " +
+                    rescueMgr.currentWP +
+                    " / " +
+                    rescueMgr.totalWP
+
+                color: "#cccccc"
+
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+    }
+    Dialog {
+        id: generateDialog
+
+        modal: true
+
+        title: "Generate Rescue Waypoints"
+
+        standardButtons:
+            Dialog.Ok | Dialog.Cancel
+
+        property int lengthValue: 100
+
+        Column {
+
+            spacing: 10
+
+            Text {
+                text: "Enter path length (m)"
+            }
+
+            TextField {
+                id: lengthField
+
+                text: "100"
+
+                validator: IntValidator {
+                    bottom: 1
+                    top: 5000
+                }
+            }
+        }
+
+        onAccepted: {
+
+            if (_activeVehicle) {
+
+                _activeVehicle.sendGenerateWps(
+                    parseInt(lengthField.text)
+                )
+            }
         }
     }
 
