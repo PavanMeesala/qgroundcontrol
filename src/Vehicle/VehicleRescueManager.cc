@@ -29,6 +29,36 @@ void VehicleRescueManager::handleRescueStatus(
     }
 }
 
+void VehicleRescueManager::handleInsertWpAck(
+    int32_t lat,
+    int32_t lon,
+    bool accepted,
+    uint8_t insertBeforeWp)
+{
+    if (!accepted) {
+        return;
+    }
+    auto* wp = new RescueWaypoint(
+        QGeoCoordinate(
+            lat / 1e7,
+            lon / 1e7));
+
+    if (insertBeforeWp >= _rescuePoints.count()) {
+
+        _rescuePoints.append(wp);
+
+    } else {
+
+        _rescuePoints.insert(insertBeforeWp, wp);
+        _activeIndex = insertBeforeWp;
+        emit activeIndexChanged();
+
+    }
+
+    emit rescuePointsChanged();
+    emit pathNeedsRefresh();
+}
+
 bool VehicleRescueManager::missionInProgress() const
 {
     return _phase == Phase::TAKEOFF

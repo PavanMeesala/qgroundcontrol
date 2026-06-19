@@ -224,40 +224,57 @@ FlightMap {
         }
         rescuePath = temp
 
-        // ---------------- Completed path ----------------
-        var completed = []
-
-        for (var j = 0; j <= activeIdx && j < model.count; j++) {
-            completed.push(model.get(j).coordinate)
-        }
-
-        if (_activeVehicle.coordinate.isValid &&
-            activeIdx >= 0) {
-
-            completed.push(_activeVehicle.coordinate)
-        }
-
-        completedRescuePath = completed
-
         // ---------------- Upcoming path ----------------
         var upcoming = []
 
-        if (_activeVehicle.coordinate.isValid &&
-            activeIdx < model.count) {
+        upcoming.push(_activeVehicle.coordinate)
 
-            upcoming.push(_activeVehicle.coordinate)
-        }
-
-        var startIdx = Math.max(activeIdx, 0)
-
-        for (var k = startIdx; k < model.count; k++) {
+        for (var k = targetIdx; k < model.count; k++) {
             upcoming.push(model.get(k).coordinate)
         }
 
-        upcomingRescuePath = upcoming
+        var targetIdx = activeIdx
 
+        if (targetIdx < 0) {
+            targetIdx = 0
+        }
+
+        if (targetIdx >= model.count) {
+            targetIdx = model.count - 1
+        }
+
+        for (var k = targetIdx; k < model.count; k++) {
+
+            var wp = model.get(k)
+
+            if (wp && wp.coordinate.isValid) {
+                upcoming.push(wp.coordinate)
+            }
+        }
+
+        upcomingRescuePath = upcoming
+        console.log(
+            "RESCUE:",
+            "activeIdx =", activeIdx,
+            "count =", model.count,
+            "inserted =", rescueMgr.insertedWaypointActive
+        )
+
+        console.log(
+            "Upcoming path points:",
+            upcoming.length
+        )
         console.log("RESCUE: completedPath length =", completedRescuePath.length)
         console.log("RESCUE: upcomingPath length =", upcomingRescuePath.length)
+        console.log("RESCUE POINT COUNT =", model.count)
+
+        for (var i = 0; i < model.count; i++) {
+            console.log(
+                "WP",
+                i,
+                model.get(i).coordinate
+            )
+        }
     }
 
     on_ActiveVehicleCoordinateChanged: {
@@ -329,9 +346,6 @@ FlightMap {
         }
 
         function onActiveIndexChanged() {
-            updateRescuePath()
-        }
-        function onPathNeedsRefresh() {
             updateRescuePath()
         }
     }
@@ -454,10 +468,6 @@ FlightMap {
 
             function onPathNeedsRefresh() {
                 console.log("RESCUE: path refresh requested")
-                updateRescuePath()
-            }
-
-            function onStatusChanged() {
                 updateRescuePath()
             }
         }
@@ -1026,17 +1036,18 @@ FlightMap {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 50
 
-        readonly property int PHASE_IDLE: 0
-        readonly property int PHASE_WPS_GENERATED: 8
-
         property bool isIdle:
-            rescueMgr && rescueMgr.phase === PHASE_IDLE
+            rescueMgr &&
+            rescueMgr.phase === phaseIdle
 
         property bool isWpsGenerated:
-            rescueMgr && rescueMgr.phase === PHASE_WPS_GENERATED
+            rescueMgr &&
+            rescueMgr.phase === phaseWpsGenerated
 
         property bool missionRunning:
-            rescueMgr && rescueMgr.missionInProgress
+            rescueMgr &&
+            rescueMgr.phase >= phaseTakeoff &&
+            rescueMgr.phase <= phaseGuided
 
         Column {
             anchors.centerIn: parent
@@ -1049,13 +1060,48 @@ FlightMap {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                text:
-                    rescueMgr ?
-                    rescueMgr.statusText :
-                    ""
+                text: {
+                    if (!rescueMgr)
+                        return ""
+
+                    switch (rescueMgr.phase) {
+
+                    case phaseIdle:
+                        return "Waiting for Waypoint Generation"
+
+                    case phaseWpsGenerated:
+                        return "Waypoints Ready"
+
+                    case phaseTakeoff:
+                        return "Waiting to Arm"
+
+                    case phaseTakingOff:
+                        return "Taking Off"
+
+                    case phaseWpNav:
+                        return "Searching WP " +
+                            rescueMgr.currentWP +
+                            " / " +
+                            rescueMgr.totalWP
+
+                    case phaseInsertNav:
+                        return "Navigating To Inserted WP"
+
+                    case phaseCentering:
+                        return "Centering Above Target"
+
+                    case phaseDeploying:
+                        return "Deploying Payload"
+
+                    case phaseGuided:
+                        return "Target Detected"
+
+                    default:
+                        return "Unknown"
+                    }
+                }
 
                 color: "white"
-
                 font.pixelSize: 11
             }
 
@@ -1167,18 +1213,70 @@ FlightMap {
 
             Rectangle {
 
-                visible: missionRunning
+                visible:!isIdle
 
                 width: 200
                 height: 34
                 radius: 6
 
-                color: "#e67e22"
+                color: {
+                    switch(rescueMgr.phase) {
+
+                    case phaseTakeoff:
+                    case phaseTakingOff:
+                        return "#3498db"
+
+                    case phaseWpNav:
+                        return "#e67e22"
+
+                    case phaseInsertNav:
+                        return "#9b59b6"
+
+                    case phaseCentering:
+                        return "#f39c12"
+
+                    case phaseDeploying:
+                        return "#c0392b"
+
+                    case phaseGuided:
+                        return "#16a085"
+
+                    default:
+                        return "#e67e22"
+                    }
+                }
 
                 Text {
                     anchors.centerIn: parent
 
-                    text: "MISSION IN PROGRESS"
+                    text: {
+                        switch(rescueMgr.phase) {
+
+                        case phaseTakeoff:
+                            return "WAITING TO ARM"
+
+                        case phaseTakingOff:
+                            return "TAKING OFF"
+
+                        case phaseWpNav:
+                            return "SEARCHING"
+
+                        case phaseInsertNav:
+                            return "INSERT NAV"
+
+                        case phaseCentering:
+                            return "CENTERING"
+
+                        case phaseDeploying:
+                            return "DEPLOYING"
+
+                        case phaseGuided:
+                            return "TARGET FOUND"
+
+                        default:
+                            return "MISSION ACTIVE"
+                        }
+                    }
 
                     color: "white"
                     font.bold: true
@@ -1188,28 +1286,28 @@ FlightMap {
                 }
             }
 
-            //--------------------------------------
-            // WP COUNTER
-            //--------------------------------------
+        //     //--------------------------------------
+        //     // WP COUNTER
+        //     //--------------------------------------
 
-            Text {
+        //     Text {
 
-                visible:
-                    missionRunning &&
-                    rescueMgr &&
-                    rescueMgr.totalWP > 0
+        //         visible:
+        //             missionRunning &&
+        //             rescueMgr &&
+        //             rescueMgr.totalWP > 0
 
-                text:
-                    "WP " +
-                    rescueMgr.currentWP +
-                    " / " +
-                    rescueMgr.totalWP
+        //         text:
+        //             "WP " +
+        //             rescueMgr.currentWP +
+        //             " / " +
+        //             rescueMgr.totalWP
 
-                color: "#cccccc"
+        //         color: "#cccccc"
 
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-        }
+        //         anchors.horizontalCenter: parent.horizontalCenter
+        //     }
+        // }
     }
     Dialog {
         id: generateDialog
@@ -1262,4 +1360,5 @@ FlightMap {
         mapControl:         _root
         visible:            !ScreenTools.isTinyScreen && QGroundControl.corePlugin.options.flyView.showMapScale && mapControl.pipState.state === mapControl.pipState.windowState
     }
+}
 }

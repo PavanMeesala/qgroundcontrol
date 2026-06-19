@@ -52,7 +52,11 @@ public:
     bool wpsLoaded() const {
         return _wpsLoaded;
     }
-
+    void handleInsertWpAck(
+        int32_t lat,
+        int32_t lon,
+        bool accepted,
+        uint8_t insertBeforeWp);
     int phase() const {
         return static_cast<int>(_phase);
     }

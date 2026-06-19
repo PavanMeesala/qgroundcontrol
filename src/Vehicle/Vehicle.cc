@@ -919,6 +919,25 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
             reached.reached);
     }
     break;
+    case MAVLINK_MSG_ID_RESCUE_INSERT_WP_ACK:
+    {
+        mavlink_rescue_insert_wp_ack_t pkt;
+
+        mavlink_msg_rescue_insert_wp_ack_decode(
+            &message,
+            &pkt);
+
+        if (_rescueManager) {
+
+            _rescueManager->handleInsertWpAck(
+                pkt.lat,
+                pkt.lon,
+                pkt.accepted == 1,
+                pkt.insert_before_wp);
+        }
+
+        break;
+    }
     case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
     {
         mavlink_servo_output_raw_t servoOutputRaw;
