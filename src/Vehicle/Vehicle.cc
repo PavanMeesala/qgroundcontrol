@@ -408,7 +408,6 @@ void Vehicle::sendGenerateWps(uint16_t length)
 
     mavlink_generate_wps_t pkt{};
     pkt.target_system = id();
-    pkt.deploy = 1;
     pkt.length = length;
 
     mavlink_msg_generate_wps_encode(
@@ -778,12 +777,12 @@ void Vehicle::resetCounters()
 
 void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t message)
 {
-    if (message.msgid >= 54990) {
-        qDebug() << "RAW MAVLINK"
-                << message.msgid
-                << "sysid=" << message.sysid
-                << "compid=" << message.compid;
-    }
+    // if (message.msgid >= 54990) {
+    //     qDebug() << "RAW MAVLINK"
+    //             << message.msgid
+    //             << "sysid=" << message.sysid
+    //             << "compid=" << message.compid;
+    // }
     if (message.sysid != _systemID && message.sysid != 0) {
         // We allow RADIO_STATUS messages which come from a link the vehicle is using to pass through and be handled
         if (!(message.msgid == MAVLINK_MSG_ID_RADIO_STATUS && _vehicleLinkManager->containsLink(link))) {

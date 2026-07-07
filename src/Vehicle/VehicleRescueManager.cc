@@ -19,6 +19,10 @@ void VehicleRescueManager::handleRescueStatus(
     _currentWP = wp_current;
     _wpsLoaded = (wps_loaded == 1);
 
+    qDebug() << "Rescue Manager Phase Change:"
+             << static_cast<int>(oldPhase) << "->" << static_cast<int>(_phase)
+             << "| WPs:" << _currentWP << "/" << _totalWP;
+
     emit statusChanged();
 
     // Force path redraw whenever INSERT_NAV occurs
@@ -65,6 +69,8 @@ bool VehicleRescueManager::missionInProgress() const
         || _phase == Phase::TAKING_OFF
         || _phase == Phase::WP_NAV
         || _phase == Phase::INSERT_NAV
+        || _phase == Phase::HOLD_POINT
+        || _phase == Phase::TARGET_APPROACH
         || _phase == Phase::CENTERING
         || _phase == Phase::DEPLOYING
         || _phase == Phase::GUIDED;
@@ -99,6 +105,12 @@ QString VehicleRescueManager::statusText() const
     case Phase::INSERT_NAV:
         return QStringLiteral("Inserting target waypoint");
 
+    case Phase::HOLD_POINT:
+        return QStringLiteral("Holding position");
+
+    case Phase::TARGET_APPROACH:
+        return QStringLiteral("Approaching target");
+
     case Phase::CENTERING:
         return QStringLiteral("Centering over target");
 
@@ -116,7 +128,7 @@ void VehicleRescueManager::clear()
 {
     _rescuePoints.clearAndDeleteContents();
 
-    _activeIndex = -1;
+    _activeIndex = 0;
 
     emit activeIndexChanged();
     emit rescuePointsChanged();

@@ -90,15 +90,17 @@ signals:
 private:
 
     enum class Phase : uint8_t {
-        IDLE           = 0,
-        TAKEOFF        = 1,
-        TAKING_OFF     = 2,
-        WP_NAV         = 3,
-        INSERT_NAV     = 4,
-        CENTERING      = 5,
-        DEPLOYING      = 6,
-        GUIDED         = 7,
-        WPS_GENERATED  = 8
+        IDLE            = 0,
+        TAKEOFF         = 1,
+        TAKING_OFF      = 2,
+        WP_NAV          = 3,
+        INSERT_NAV      = 4,
+        HOLD_POINT      = 5,
+        TARGET_APPROACH = 6,
+        CENTERING       = 7,
+        DEPLOYING       = 8,
+        GUIDED          = 9,
+        WPS_GENERATED   = 10,
     };
 
     Phase   _phase     { Phase::IDLE };
@@ -107,5 +109,5 @@ private:
     bool    _wpsLoaded { false };
 
     QmlObjectListModel _rescuePoints;
-    int _activeIndex { -1 };
+    int _activeIndex { 0 };
 };

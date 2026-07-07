@@ -51,10 +51,13 @@ FlightMap {
     readonly property int phaseTakingOff:       2
     readonly property int phaseWpNav:           3
     readonly property int phaseInsertNav:       4
-    readonly property int phaseCentering:       5
-    readonly property int phaseDeploying:       6
-    readonly property int phaseGuided:          7
-    readonly property int phaseWpsGenerated:    8
+    readonly property int phaseHoldPoint:       5
+    readonly property int phaseTargetApproach:  6
+    readonly property int phaseCentering:       7
+    readonly property int phaseDeploying:       8
+    readonly property int phaseGuided:          9
+    readonly property int phaseWpsGenerated:    10
+
 
     property bool isIdle:rescueMgr && rescueMgr.phase === phaseIdle
 
@@ -1022,7 +1025,7 @@ FlightMap {
     Rectangle {
         id: rescuePanel
 
-        visible: rescueMgr !== null
+        visible: rescueMgr !== null //&& _activeVehicle.flightVehicle === "RESCUE"
 
         width: 220
         height: 130
@@ -1314,7 +1317,7 @@ FlightMap {
 
         modal: true
 
-        title: "Generate Rescue Waypoints"
+        title: "Input Search Length"
 
         standardButtons:
             Dialog.Ok | Dialog.Cancel
