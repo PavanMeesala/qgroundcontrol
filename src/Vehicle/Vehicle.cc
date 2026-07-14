@@ -239,64 +239,6 @@ void Vehicle::stopTrackingFirmwareVehicleTypeChanges(void)
 #include <QDebug>
 
 
-// ✅ Send MAV_CMD_DO_SET_SERVO
-void Vehicle::_sendServoCommand(int servo, int pwm)
-{
-    mavlink_message_t msg;
-
-    mavlink_msg_command_long_pack(
-        255,                        // GCS sysid
-        0,                          // GCS compid
-        &msg,
-        id(),                       // target system
-        defaultComponentId(),       // target component
-        MAV_CMD_DO_SET_SERVO,
-        0,
-        servo,                      // servo output number
-        pwm,                        // pwm value
-        0, 0, 0, 0, 0
-    );
-
-    auto sharedLink = _vehicleLinkManager->primaryLink().lock();
-
-    if (sharedLink) {
-        sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
-    }
-}
-// void Vehicle::deployLifebuoy(bool deploy)
-// {
-//     int pwm = deploy ? _deployPWM : _retractPWM;
-
-//     uint16_t ch[18] = {0};
-
-//     // 🔥 Map selected servos dynamically
-//     if (_servo1 >= 1 && _servo1 <= 18)
-//         ch[_servo1 - 1] = pwm;
-
-//     if (_servo2 >= 1 && _servo2 <= 18)
-//         ch[_servo2 - 1] = pwm;
-
-//     if (_servo3 >= 1 && _servo3 <= 18)
-//         ch[_servo3 - 1] = pwm;
-
-//     mavlink_message_t msg;
-
-//     mavlink_msg_rc_channels_override_pack(
-//         MAVLinkProtocol::instance()->getSystemId(),
-//         MAVLinkProtocol::instance()->getComponentId(),
-//         &msg,
-//         id(),
-//         defaultComponentId(),
-
-//         ch[0], ch[1], ch[2], ch[3],
-//         ch[4], ch[5], ch[6], ch[7],
-//         ch[8], ch[9], ch[10], ch[11],
-//         ch[12], ch[13], ch[14], ch[15],
-//         ch[16], ch[17]
-//     );
-
-//     sendMessageMultiple(msg);
-// }
 void Vehicle::sendRescueStartSearch()
 {
     SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
@@ -319,60 +261,54 @@ void Vehicle::sendRescueStartSearch()
 
     sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
 }
-// ✅ Deploy / Retract
 void Vehicle::deployLifebuoy(bool deploy)
 {
-    int pwm = deploy ? _deployPWM : _retractPWM;
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
 
-    _sendServoCommand(_servo1, pwm);
-    _sendServoCommand(_servo2, pwm);
-    _sendServoCommand(_servo3, pwm);
+    if (!sharedLink) {
+        qWarning() << "No active MAVLink link";
+        return;
+    }
+
+    mavlink_message_t msg;
+
+    mavlink_msg_lifebuoy_control_pack_chan(
+        MAVLinkProtocol::instance()->getSystemId(),          // GCS system id
+        MAVLinkProtocol::instance()->getComponentId(),       // GCS component id
+        sharedLink->mavlinkChannel(),
+        &msg,
+        id(),                                                // target_system (vehicle id)
+        deploy ? 1 : 0                                       // deploy flag
+    );
+
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+
+    qDebug() << "Sent LIFEBUOY_CONTROL:"
+             << (deploy ? "DEPLOY" : "RETRACT");
 }
 
 
-// ✅ Set params into ArduPilot
 void Vehicle::setServoSettings(int aux1,
                                int aux2,
                                int aux3,
                                int deployPwm,
                                int retractPwm)
 {
-    qDebug() << "Saving Servo Settings:"
+    qDebug() << "Saving Rescue Servo Settings:"
              << aux1
              << aux2
              << aux3
              << deployPwm
              << retractPwm;
+    // Write Rescue parameters
+    _setParam("RSC_PWM_CH1", aux1);
+    _setParam("RSC_PWM_CH2", aux2);
+    _setParam("RSC_PWM_CH3", aux3);
 
-    _servo1 = aux1;
-    _servo2 = aux2;
-    _servo3 = aux3;
+    _setParam("RSC_DEP_PWM", deployPwm);
+    _setParam("RSC_RET_PWM", retractPwm);
 
-    _deployPWM  = deployPwm;
-    _retractPWM = retractPwm;
-
-    // -----------------------------
-    // Servo 1
-    // -----------------------------
-    _setParam(QString("SERVO%1_FUNCTION").arg(aux1), 0);
-    _setParam(QString("SERVO%1_MIN").arg(aux1), retractPwm);
-    _setParam(QString("SERVO%1_MAX").arg(aux1), deployPwm);
-
-    // -----------------------------
-    // Servo 2
-    // -----------------------------
-    _setParam(QString("SERVO%1_FUNCTION").arg(aux2), 0);
-    _setParam(QString("SERVO%1_MIN").arg(aux2), retractPwm);
-    _setParam(QString("SERVO%1_MAX").arg(aux2), deployPwm);
-
-    // -----------------------------
-    // Servo 3
-    // -----------------------------
-    _setParam(QString("SERVO%1_FUNCTION").arg(aux3), 0);
-    _setParam(QString("SERVO%1_MIN").arg(aux3), retractPwm);
-    _setParam(QString("SERVO%1_MAX").arg(aux3), deployPwm);
-
-    qDebug() << "Servo params written";
+    qDebug() << "Rescue servo parameters written";
 }
 void Vehicle::rescueInsertWaypoint(double latitude,
                                    double longitude)
@@ -423,14 +359,22 @@ void Vehicle::sendGenerateWps(uint16_t length)
 // ✅ Write parameter
 void Vehicle::_setParam(const QString& name, float value)
 {
-    if (!parameterManager()) return;
+    if (!parameterManager()) {
+        qWarning() << "No parameter manager";
+        return;
+    }
 
     Fact* fact = parameterManager()->getParameter(defaultComponentId(), name);
-    if (fact) {
-        fact->setRawValue(value);
-    }
-}
 
+    if (!fact) {
+        qWarning() << "Parameter" << name << "not found";
+        return;
+    }
+
+    qDebug() << "Writing parameter:" << name << "=" << value;
+
+    fact->setRawValue(value);
+}
 
 // ✅ Read parameter
 int Vehicle::getParamInt(QString param, int defaultValue)

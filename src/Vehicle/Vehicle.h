@@ -128,15 +128,8 @@ public:
     Q_INVOKABLE int getParamInt(QString param, int defaultValue = 0);
 
 private:
-    void _sendServoCommand(int servo, int pwm);
     void _setParam(const QString& name, float value);
 
-    int _servo1 = 9;
-    int _servo2 = 10;
-    int _servo3 = 11;
-
-    int _deployPWM = 1900;
-    int _retractPWM = 1100;
 
     VehicleRescueManager* _rescueManager = nullptr;
 

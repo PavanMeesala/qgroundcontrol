@@ -148,7 +148,7 @@ Item {
         anchors.top:    parent.top
         anchors.left:   parent.left
         anchors.topMargin:  pipState.state === pipState.fullState
-                            ? ScreenTools.toolbarHeight * 5 //+ ScreenTools.defaultFontPixelHeight * 0.5
+                            ? ScreenTools.toolbarHeight * 3 + ScreenTools.defaultFontPixelHeight * 0.5
                             : ScreenTools.defaultFontPixelHeight * 0.4
         anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.6
         width:          streamRow.implicitWidth + ScreenTools.defaultFontPixelWidth * 3
@@ -165,7 +165,7 @@ Item {
 
             QGCLabel {
                 id:             streamLabel
-                text:           ["A8 RGB", "Thermal RGB", "Thermal IR"][_activeStream]
+                text:           ["RGB", "Thermal", "IR"][_activeStream]
                 color:          "white"
                 font.pointSize: ScreenTools.smallFontPointSize
                 font.bold:      true
@@ -207,7 +207,7 @@ Item {
             spacing:        2
 
             Repeater {
-                model: ["A8 RGB", "Thermal RGB", "Thermal IR"]
+                model: ["RGB", "Thermal", "IR"]
                 delegate: Rectangle {
                     width:   dropdownCol.width
                     height:  ScreenTools.defaultFontPixelHeight * 2

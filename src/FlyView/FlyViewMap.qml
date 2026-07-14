@@ -1025,7 +1025,7 @@ FlightMap {
     Rectangle {
         id: rescuePanel
 
-        visible: rescueMgr !== null //&& _activeVehicle.flightVehicle === "RESCUE"
+        visible: rescueMgr !== null && _activeVehicle && _activeVehicle.flightMode === "RESCUE"
 
         width: 220
         height: 130
@@ -1037,7 +1037,7 @@ FlightMap {
 
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 50
+        anchors.topMargin: Qt.platform.os === "android" ? ScreenTools.defaultFontPixelHeight * 4 : ScreenTools.defaultFontPixelHeight * 4
 
         property bool isIdle:
             rescueMgr &&
@@ -1312,45 +1312,153 @@ FlightMap {
         //     }
         // }
     }
-    Dialog {
+    Popup {
         id: generateDialog
 
         modal: true
+        focus: true
 
-        title: "Input Search Length"
+        width: 330
+        height: 220
 
-        standardButtons:
-            Dialog.Ok | Dialog.Cancel
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-        property int lengthValue: 100
+        background: Rectangle {
+            radius: 12
+            color: "#2b2b2b"
+            border.color: "#555"
+            border.width: 1
+        }
 
         Column {
-
-            spacing: 10
-
-            Text {
-                text: "Enter path length (m)"
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+                margins: 20
             }
 
-            TextField {
-                id: lengthField
+            spacing: 15
 
-                text: "100"
+            Text {
+                text: "Generate Search Pattern"
+                font.pixelSize: 22
+                font.bold: true
+                color: "white"
+            }
 
-                validator: IntValidator {
-                    bottom: 1
-                    top: 5000
+            Text {
+                text: "Enter search length (m)"
+                color: "#bdbdbd"
+                font.pixelSize: 13
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 42
+                radius: 8
+
+                color: "#1f1f1f"
+                border.color: "#555"
+
+                TextField {
+                    id: lengthField
+
+                    anchors.fill: parent
+                    anchors.margins: 2
+
+                    text: "100"
+
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+
+                    color: "white"
+                    font.pixelSize: 16
+
+                    background: Item {}
+
+                    validator: IntValidator {
+                        bottom: 1
+                        top: 5000
+                    }
                 }
             }
         }
 
-        onAccepted: {
+        Row {
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                margins: 20
+            }
 
-            if (_activeVehicle) {
+            spacing: 12
 
-                _activeVehicle.sendGenerateWps(
-                    parseInt(lengthField.text)
-                )
+            Rectangle {
+                width: (parent.width - 12) / 2
+                height: 38
+                radius: 8
+
+                color: "#404040"
+                border.color: "#606060"
+
+                Behavior on color {
+                    ColorAnimation { duration: 120 }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "Cancel"
+                    color: "white"
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onEntered: parent.color = "#505050"
+                    onExited: parent.color = "#404040"
+
+                    onClicked: generateDialog.close()
+                }
+            }
+
+            Rectangle {
+                width: (parent.width - 12) / 2
+                height: 38
+                radius: 8
+
+                color: "#2196F3"
+                border.color: "#1976D2"
+
+                Behavior on color {
+                    ColorAnimation { duration: 120 }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "Generate"
+                    color: "white"
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onEntered: parent.color = "#42A5F5"
+                    onExited: parent.color = "#2196F3"
+
+                    onClicked: {
+                        generateDialog.close()
+
+                        if (_activeVehicle) {
+                            _activeVehicle.sendGenerateWps(parseInt(lengthField.text))
+                        }
+                    }
+                }
             }
         }
     }
