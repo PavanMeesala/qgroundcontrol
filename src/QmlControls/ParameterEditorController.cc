@@ -186,16 +186,16 @@ void ParameterEditorController::_buildListsForComponent(int compId)
 
         Fact* fact = _parameterMgr->getParameter(compId, factName);
 
-        if (!_developerUnlocked) {
+        // if (!_developerUnlocked) {
 
-            if (!factName.startsWith("RSC_")) {
-                continue;
-            }
+        //     if (!factName.startsWith("RSC_")) {
+        //         continue;
+        //     }
 
-            if (fact->category() != "Advanced") {
-                continue;
-            }
-        }
+        //     if (fact->category() != "Advanced") {
+        //         continue;
+        //     }
+        // }
 
         ParameterEditorCategory* category = nullptr;
 

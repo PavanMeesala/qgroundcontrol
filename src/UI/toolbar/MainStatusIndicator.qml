@@ -215,9 +215,10 @@ RowLayout {
                     width: 100
                     radius: 5
 
-                    property bool safetyOff: false
+                    // property bool safetyOff: false
 
-                    color: safetyOff ?  "#217544" : "#86342a"
+                    // color: safetyOff ?  "#217544" : "#86342a"
+                    color: _activeVehicle.safetyOff ? "#217544" : "#86342a"
                     border.color: "#222"
                     border.width: 1
 
@@ -228,7 +229,7 @@ RowLayout {
                     Text {
                         anchors.centerIn: parent
 
-                        text: safetyButton.safetyOff ? "Safety ON" : "Safety OFF"
+                        text: _activeVehicle.safetyOff ? "Safety ON" : "Safety OFF"
 
                         font.pixelSize: 12
                         font.bold: true
@@ -252,12 +253,12 @@ RowLayout {
                                 return
 
                             // Next state to send
-                            var nextState = safetyButton.safetyOff ? 0 : 1
+                            // var nextState = safetyButton.safetyOff ? 0 : 1
 
-                            _activeVehicle.toggleSafetySwitch(nextState)
+                            _activeVehicle.toggleSafetySwitch(!_activeVehicle.safetyOff)
 
                             // Update UI
-                            safetyButton.safetyOff = !safetyButton.safetyOff
+                            // safetyButton.safetyOff = !safetyButton.safetyOff
                         }
                     }
                 }

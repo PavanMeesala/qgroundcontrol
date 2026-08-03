@@ -174,6 +174,16 @@ Vehicle::Vehicle(LinkInterface*             link,
     connect(&_csvLogTimer, &QTimer::timeout, this, &Vehicle::_writeCsvLine);
     _csvLogTimer.start(1000);
 
+    _homeBeaconTimeoutTimer.setSingleShot(true);
+
+    connect(&_homeBeaconTimeoutTimer,&QTimer::timeout,this,[this]()
+    {
+        if (_homeBeaconValid) {
+            _homeBeaconValid = false;
+            emit homeBeaconValidChanged();
+        }
+    });
+
 }
 
 // Disconnected Vehicle for offline editing
@@ -398,14 +408,40 @@ int Vehicle::getParamInt(QString param, int defaultValue)
 // ------------------------------------------
 // Safety switch method
 // ------------------------------------------
+bool Vehicle::safetyOff() const
+{
+    return _safetyOff;
+}
+
+void Vehicle::setSafetyState(bool safetyOff)
+{
+    // qDebug() << "Old =" << _safetyOff
+    //          << "New =" << safetyOff;
+
+    if (_safetyOff == safetyOff) {
+        // qDebug() << "No update";
+        return;
+    }
+
+    _safetyOff = safetyOff;
+
+    // qDebug() << "Emitting safetyOffChanged";
+
+    // qDebug() << "Vehicle object =" << this
+    //      << "Vehicle id =" << id()
+    //      << "Old =" << _safetyOff
+    //      << "New =" << safetyOff;
+
+    emit safetyOffChanged();
+}
 #include <mavlink.h>
 void Vehicle::toggleSafetySwitch(int state)
 {
     mavlink_message_t msg;
 
     mavlink_msg_command_long_pack(
-        255,                        // GCS sysid
-        0,                          // GCS compid
+        MAVLinkProtocol::instance()->getSystemId(),
+        MAVLinkProtocol::getComponentId(),
         &msg,
         id(),                       // target system
         defaultComponentId(),       // target component
@@ -825,6 +861,9 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
     switch (message.msgid) {
     case MAVLINK_MSG_ID_HOME_POSITION:
         _handleHomePosition(message);
+        break;
+    case MAVLINK_MSG_ID_HOME_BEACON_GPS:
+        _handleHomeBeaconGPS(message);
         break;
     case MAVLINK_MSG_ID_HEARTBEAT:
         _handleHeartbeat(message);
@@ -1349,6 +1388,17 @@ void Vehicle::_handleSysStatus(mavlink_message_t& message)
     mavlink_sys_status_t sysStatus;
     mavlink_msg_sys_status_decode(&message, &sysStatus);
 
+    // qDebug() << "SYS_STATUS health =" << sysStatus.onboard_control_sensors_health;
+
+    bool safetyOff =
+    (sysStatus.onboard_control_sensors_health & 0x10000000) != 0;
+
+    // qDebug() << "Vehicle object =" << this
+    //      << "Vehicle id =" << id()
+    //      << "SYS_STATUS health =" << sysStatus.onboard_control_sensors_health;
+
+    setSafetyState(safetyOff);
+
     _sysStatusSensorInfo->update(sysStatus);
 
     if (sysStatus.onboard_control_sensors_enabled & MAV_SYS_STATUS_PREARM_CHECK) {
@@ -1481,7 +1531,29 @@ void Vehicle::_handleHomePosition(mavlink_message_t& message)
                                     homePos.altitude / 1000.0);
     _setHomePosition(newHomePosition);
 }
+void Vehicle::_handleHomeBeaconGPS(const mavlink_message_t& message)
+{
+    mavlink_home_beacon_gps_t beacon;
+    mavlink_msg_home_beacon_gps_decode(&message, &beacon);
 
+    _homeBeaconCoordinate.setLatitude(beacon.lat / 1e7);
+    _homeBeaconCoordinate.setLongitude(beacon.lon / 1e7);
+
+    _homeBeaconHeading = beacon.heading;
+
+    emit homeBeaconCoordinateChanged();
+    emit homeBeaconHeadingChanged();
+
+    if (!_homeBeaconValid) {
+        _homeBeaconValid = true;
+        qDebug() << "_homeBeaconValid =" << _homeBeaconValid;
+        emit homeBeaconValidChanged();
+    }
+
+    qDebug() << "HOME_BEACON_GPS received";
+
+    _homeBeaconTimeoutTimer.start(10000);   // restart 10-second timeout
+}
 void Vehicle::_updateArmed(bool armed)
 {
     if (_armed != armed) {

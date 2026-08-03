@@ -60,9 +60,10 @@ Item {
                 }
                 PropertyChanges {
                     target: lifebuoyPanel
-                    anchors.leftMargin:  60
-                    anchors.rightMargin: 0
-                    anchors.topMargin:  10
+                    anchors.topMargin: ScreenTools.toolbarHeight * 0.8 + ScreenTools.defaultFontPixelHeight * 0.6
+                    anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.6
+                    // anchors.leftMargin:  60
+                    // anchors.topMargin:  10
                 }
             },
             State {
@@ -76,8 +77,10 @@ Item {
                 PropertyChanges {
                     target: lifebuoyPanel
                     anchors.leftMargin:  0
-                    anchors.rightMargin: 10
-                    anchors.topMargin:  60
+                    anchors.topMargin: ScreenTools.toolbarHeight * 3 + ScreenTools.defaultFontPixelHeight * 0.5
+                    anchors.rightMargin: ScreenTools.defaultFontPixelWidth * 0.6
+                    // anchors.rightMargin: 10
+                    // anchors.topMargin:  60
                 }
             }
         ]

@@ -148,7 +148,7 @@ Item {
         anchors.top:    parent.top
         anchors.left:   parent.left
         anchors.topMargin:  pipState.state === pipState.fullState
-                            ? ScreenTools.toolbarHeight * 3 + ScreenTools.defaultFontPixelHeight * 0.5
+                            ? ScreenTools.toolbarHeight * 1 + ScreenTools.defaultFontPixelHeight * 0.6
                             : ScreenTools.defaultFontPixelHeight * 0.4
         anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.6
         width:          streamRow.implicitWidth + ScreenTools.defaultFontPixelWidth * 3

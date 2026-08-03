@@ -225,6 +225,31 @@ Map {
         }
     }
 
+    MapQuickItem {
+        visible: _activeVehicle && _activeVehicle.homeBeaconCoordinate.isValid
+
+        coordinate: _activeVehicle.homeBeaconCoordinate
+
+        anchorPoint.x: image.width / 2
+        anchorPoint.y: image.height / 2
+
+        sourceItem: Image {
+            id: image
+
+            width: 40
+            height: 40
+
+            source: _activeVehicle.homeBeaconValid ?
+                        "qrc:/qmlimages/MapHome.svg" :
+                        "qrc:/qmlimages/MapHomeBlack.svg"
+
+            rotation: _activeVehicle.homeBeaconValid ?
+                        _activeVehicle.homeBeaconHeading :
+                        0
+        }
+    }
+
+
     /// Ground Station location
     MapQuickItem {
         anchorPoint.x:  sourceItem.width / 2

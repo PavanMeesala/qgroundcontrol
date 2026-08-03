@@ -1,5 +1,5 @@
 set(QGC_APP_NAME "AethOS")
 set(QGC_APP_DESCRIPTION "AethOS Ground Control Station")
 set(QGC_ORG_NAME "Aethrone")
-set(CPM_mavlink_SOURCE "/home/aethrone/mavlink_qgc")
-set(CPM_mavlink_SOURCE "/home/aethrone/mavlink_qgc")
+set(CPM_mavlink_SOURCE "/home/vidhyarthi/mavlink_qgc")
+set(CPM_mavlink_SOURCE "/home/vidhyarthi/mavlink_qgc")

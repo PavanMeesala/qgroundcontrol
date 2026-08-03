@@ -126,12 +126,24 @@ public:
                                     int retractPwm);
 
     Q_INVOKABLE int getParamInt(QString param, int defaultValue = 0);
+    QGeoCoordinate _homeBeaconCoordinate;
+    float _homeBeaconHeading = 0.0f;
+
+    QGeoCoordinate homeBeaconCoordinate() const { return _homeBeaconCoordinate; }
+    float homeBeaconHeading() const { return _homeBeaconHeading; }
 
 private:
+
+    bool _homeBeaconValid = false;
+
+    bool homeBeaconValid() const { return _homeBeaconValid; }
+
+    QTimer _homeBeaconTimeoutTimer;
     void _setParam(const QString& name, float value);
 
 
     VehicleRescueManager* _rescueManager = nullptr;
+    bool _safetyOff = false;
 
 public:
     Vehicle(LinkInterface*          link,
@@ -272,6 +284,7 @@ public:
     Q_PROPERTY(FactGroup*           efi             READ efiFactGroup               CONSTANT)
     Q_PROPERTY(FactGroup*           radioStatus     READ radioStatusFactGroup       CONSTANT)
     Q_PROPERTY(Actuators*           actuators       READ actuators                  CONSTANT)
+    Q_PROPERTY(bool                 safetyOff       READ safetyOff                  NOTIFY safetyOffChanged)
 
     // Dynamic FactGroupListModel properties
     Q_PROPERTY(QmlObjectListModel*  batteries       READ batteries                  CONSTANT)
@@ -291,6 +304,10 @@ public:
 
     Q_PROPERTY(bool     mavlinkSigning              READ mavlinkSigning             NOTIFY mavlinkSigningChanged)
     Q_PROPERTY(QString  mavlinkSigningKeyName       READ mavlinkSigningKeyName      NOTIFY mavlinkSigningChanged)
+    Q_PROPERTY(QGeoCoordinate homeBeaconCoordinate  READ homeBeaconCoordinate       NOTIFY homeBeaconCoordinateChanged)
+
+    Q_PROPERTY(float homeBeaconHeading              READ homeBeaconHeading          NOTIFY homeBeaconHeadingChanged)
+    Q_PROPERTY(bool homeBeaconValid                 READ homeBeaconValid            NOTIFY homeBeaconValidChanged)
 
     //  Safety switch
     Q_INVOKABLE void toggleSafetySwitch(int);
@@ -757,6 +774,9 @@ public:
 
     GimbalController* gimbalController  () { return _gimbalController; }
 
+    bool safetyOff() const;
+    void setSafetyState(bool safetyOff);
+
 public slots:
     void setVtolInFwdFlight                 (bool vtolInFwdFlight);
     void _offlineFirmwareTypeSettingChanged (QVariant varFirmwareType); // Should only be used by MissionControler to set firmware from Plan file
@@ -764,6 +784,7 @@ public slots:
     Q_INVOKABLE void sendGripperAction(GRIPPER_ACTIONS gripperOption);
 
 signals:
+    void homeBeaconValidChanged         ();
     void coordinateChanged              (QGeoCoordinate coordinate);
     void mavlinkMessageReceived         (const mavlink_message_t& message);
     void homePositionChanged            (const QGeoCoordinate& homePosition);
@@ -838,6 +859,9 @@ signals:
 
     void mavlinkStatusChanged           ();
     void mavlinkSigningChanged          ();
+    void safetyOffChanged               ();
+    void homeBeaconCoordinateChanged    ();
+    void homeBeaconHeadingChanged       ();
 
     void isROIEnabledChanged            ();
     void roiCoordChanged                (const QGeoCoordinate& centerCoord);
@@ -879,6 +903,7 @@ private:
     void _activeVehicleChanged          (Vehicle* newActiveVehicle);
     void _handlePing                    (LinkInterface* link, mavlink_message_t& message);
     void _handleHomePosition            (mavlink_message_t& message);
+    void _handleHomeBeaconGPS           (const mavlink_message_t& message);
     void _handleHeartbeat               (mavlink_message_t& message);
     void _handleCurrentMode             (mavlink_message_t& message);
     void _handleRCChannels              (mavlink_message_t& message);

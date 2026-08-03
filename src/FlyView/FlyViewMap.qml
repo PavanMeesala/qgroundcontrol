@@ -440,6 +440,20 @@ FlightMap {
             function onPointsCleared() { trajectoryPolyline.path = [] }
         }
     }
+
+    TelemetryCard {
+
+        anchors.left: parent.left
+        anchors.top : parent.top
+
+        // anchors.bottom: parent.bottom
+
+        visible: !pipMode && _activeVehicle
+
+        anchors.leftMargin: 30
+
+        anchors.topMargin: 3 * ScreenTools.defaultFontPixelHeight
+    }
     // // Completed rescue path — red, blends with drone trajectory
     // MapPolyline {
     //     id: rescueCompletedPolyline
@@ -1022,22 +1036,24 @@ FlightMap {
             dropPanel.open()
         }
     }
+
     Rectangle {
         id: rescuePanel
 
-        visible: rescueMgr !== null && _activeVehicle && _activeVehicle.flightMode === "RESCUE"
+        visible: rescueMgr !== null && _activeVehicle && _activeVehicle.flightMode === "RESCUE" && !pipMode
 
         width: 220
         height: 130
 
         radius: 8
 
-        color: "#202020"
+        color: "#2020203b"
         border.color: "#444"
 
         anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: Qt.platform.os === "android" ? ScreenTools.defaultFontPixelHeight * 4 : ScreenTools.defaultFontPixelHeight * 4
+        anchors.right: parent.right
+        // anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: Qt.platform.os === "android" ? ScreenTools.defaultFontPixelHeight * 4 : ScreenTools.defaultFontPixelHeight * 6
 
         property bool isIdle:
             rescueMgr &&
@@ -1320,6 +1336,11 @@ FlightMap {
 
         width: 330
         height: 220
+
+        parent: Overlay.overlay
+
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
 
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 

@@ -77,5 +77,8 @@ qt_add_qml_module(FlyViewModule
         VehicleWarnings.qml
         VirtualJoystick.qml
         VTOLChecklist.qml
+        TelemetryCard.qml
+        InfoItem.qml
+        SectionHeader.qml
     NO_PLUGIN
 )

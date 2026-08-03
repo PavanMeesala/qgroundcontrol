@@ -92,7 +92,8 @@ QStringList APMFirmwarePlugin::flightModes(Vehicle *vehicle) const
         "Guided",
         "RTL",
         "Loiter",
-        "RESCUE"
+        "RESCUE",
+        "DYN_LAND",
     };
 
     for (const FirmwareFlightMode &mode : _flightModeList) {

@@ -16,7 +16,7 @@ Item {
 
     property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
     property bool   _communicationLost: _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
-    property color  _mainStatusBGColor: qgcPal.brandingPurple
+    property color  _mainStatusBGColor: qgcPal.brandingBlue
     property real   _leftRightMargin:   ScreenTools.defaultFontPixelWidth * 0.75
     property var    _guidedController:  globals.guidedControllerFlyView
 
@@ -138,6 +138,28 @@ Item {
                 }
             }
         }
+    }
+    Image {
+        id: aethosLogo
+
+        anchors {
+            top: parent.top
+            right: parent.right
+            // topMargin: 18
+            rightMargin: 18
+            verticalCenter: parent.verticalCenter
+        }
+
+        source: "qrc:/qmlimages/AethOSLogo.png"
+
+        width: ScreenTools.defaultFontPixelHeight * 15
+        height: ScreenTools.defaultFontPixelHeight * 5
+
+        fillMode: Image.PreserveAspectFit
+
+        smooth: true
+
+        opacity: 0.95
     }
 
     // The guided action message display is outside of the GuidedActionConfirm control so that it doesn't end up as
