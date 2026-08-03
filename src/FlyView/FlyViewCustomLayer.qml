@@ -208,314 +208,352 @@ Item {
         }
 
     }
-    Popup {
-        id: settingsPopup
+Popup {
+    id: settingsPopup
 
-        width: 380
-        height: 360
-        modal: true
-        focus: true
-        closePolicy: Popup.NoAutoClose
+    width: 380
+    implicitHeight: mainColumn.implicitHeight + 32   // 16px top + 16px bottom margin
+    modal: true
+    focus: true
+    closePolicy: Popup.NoAutoClose
 
-        background: Rectangle {
-            color: "#2c3e50"
-            radius: 10
-        }
+    // Center in the window rather than defaulting to top-left, which
+    // was overlapping TelemetryCard docked in the same corner.
+    x: parent ? (parent.width  - width)  / 2 : 0
+    y: parent ? (parent.height - implicitHeight) / 2 : 0
 
-        // onOpened: {
+    background: Rectangle {
+        color: "#2c3e50"
+        radius: 10
+    }
 
-        //     servo1Field.text =
-        //         vehicle.getParamInt("SERVO9_FUNCTION", 59) === 59 ? "9" : ""
+    // Servo channels are fixed AUX1-3 (Servo9/10/11). Only their PWM
+    // range is user-configurable now, not the channel assignment.
+    readonly property int servo1Channel: 9
+    readonly property int servo2Channel: 10
+    readonly property int servo3Channel: 11
 
-        //     servo2Field.text =
-        //         vehicle.getParamInt("SERVO10_FUNCTION", 59) === 59 ? "10" : ""
+    onOpened: {
+        min1Field.text = vehicle.getParamInt("SERVO9_MIN", 1100).toString()
+        max1Field.text = vehicle.getParamInt("SERVO9_MAX", 1900).toString()
 
-        //     servo3Field.text =
-        //         vehicle.getParamInt("SERVO11_FUNCTION", 59) === 59 ? "11" : ""
+        min2Field.text = vehicle.getParamInt("SERVO10_MIN", 1100).toString()
+        max2Field.text = vehicle.getParamInt("SERVO10_MAX", 1900).toString()
 
-        //     // IMPORTANT
-        //     deployField.text = ""
-        //     retractField.text = ""
-        // }
-        onOpened: {
-            servo1Field.text = vehicle.getParamInt("RSC_PWM_CH1", 9).toString()
-            servo2Field.text = vehicle.getParamInt("RSC_PWM_CH2", 10).toString()
-            servo3Field.text = vehicle.getParamInt("RSC_PWM_CH3", 11).toString()
+        min3Field.text = vehicle.getParamInt("SERVO11_MIN", 1100).toString()
+        max3Field.text = vehicle.getParamInt("SERVO11_MAX", 1900).toString()
+    }
 
-            deployField.text = vehicle.getParamInt("RSC_DEP_PWM", 1800).toString()
-            retractField.text = vehicle.getParamInt("RSC_RET_PWM", 1100).toString()
-        }
+    Column {
+        id: mainColumn
 
-        Column {
-            anchors.fill: parent
-            anchors.margins: 16
-            spacing: 14
+        anchors.fill: parent
+        anchors.margins: 16
+        spacing: 12
 
-            // 🔷 Header Row
-            Item {
-                width: parent.width
-                height: 30
+        // 🔷 Header Row
+        Item {
+            width: parent.width
+            height: 30
+
+            Text {
+                text: "Settings"
+                color: "white"
+                font.pixelSize: 20
+                font.bold: true
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Rectangle {
+                width: 70
+                height: 28
+                radius: 6
+                color: "transparent"
+                border.color: "#e74c3c"
+                border.width: 1
+
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
 
                 Text {
-                    text: "Settings"
-                    color: "white"
-                    font.pixelSize: 20
+                    anchors.centerIn: parent
+                    text: "Close"
+                    color: "#e74c3c"
+                    font.pixelSize: 14
                     font.bold: true
-                    anchors.left: parent.left
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: settingsPopup.close()
+                }
+            }
+        }
+
+        // 🔷 Form Area - 3 column table: Servo | Min PWM | Max PWM
+        Column {
+            width: parent.width
+            spacing: 10
+
+            // Column headers
+            Row {
+                spacing: 8
+
+                Text {
+                    text: "Servo"
+                    color: "#bdc3c7"
+                    font.pixelSize: 12
+                    font.bold: true
+                    width: 64
+                }
+
+                Text {
+                    text: "Min PWM"
+                    color: "#bdc3c7"
+                    font.pixelSize: 12
+                    font.bold: true
+                    width: 115
+                }
+
+                Text {
+                    text: "Max PWM"
+                    color: "#bdc3c7"
+                    font.pixelSize: 12
+                    font.bold: true
+                    width: 115
+                }
+            }
+
+            // Servo 1
+            Row {
+                spacing: 8
+
+                Text {
+                    text: "Servo 1"
+                    color: "white"
+                    width: 64
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Rectangle {
-                    width: 70
-                    height: 28
+                    width: 115
+                    height: 32
                     radius: 6
-                    color: "transparent"
-                    border.color: "#e74c3c"
-                    border.width: 1
+                    color: "#ecf0f1"
 
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Close"
-                        color: "#e74c3c"
-                        font.pixelSize: 14
-                        font.bold: true
-                    }
-
-                    MouseArea {
+                    TextField {
+                        id: min1Field
                         anchors.fill: parent
-                        onClicked: settingsPopup.close()
-                    }
-                }
-            }
+                        anchors.margins: 2
+                        color: "black"
+                        font.pixelSize: 14
+                        placeholderText: vehicle ? vehicle.getParamInt("SERVO9_MIN", 1100).toString() : "1100"
+                        placeholderTextColor: "#7f8c8d"
+                        validator: IntValidator { bottom: 0; top: 3000 }
 
-            // 🔷 Form Area
-            Column {
-                width: parent.width
-                spacing: 10
-
-                Row {
-                    spacing: 10
-
-                    Text {
-                        text: "Servo 1 (AUX)"
-                        color: "white"
-                        width: 140
-                    }
-
-                    Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
-                        TextField {
-                            id: servo1Field
-                            anchors.fill: parent
-                            anchors.margins: 2
-
-                            color: "black"
-                            font.pixelSize: 14
-
-                            placeholderText: "e.g. 9"
-                            placeholderTextColor: "#7f8c8d"
-
-                            background: Rectangle {
-                                radius: 6
-                                color: "#ecf0f1"
-                                border.color: "#bdc3c7"
-                            }
+                        background: Rectangle {
+                            radius: 6
+                            color: "#ecf0f1"
+                            border.color: "#bdc3c7"
                         }
                     }
                 }
 
-                Row {
-                    spacing: 10
+                Rectangle {
+                    width: 115
+                    height: 32
+                    radius: 6
+                    color: "#ecf0f1"
 
-                    Text {
-                        text: "Servo 2 (AUX)"
-                        color: "white"
-                        width: 140
-                    }
+                    TextField {
+                        id: max1Field
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        color: "black"
+                        font.pixelSize: 14
+                        placeholderText: vehicle ? vehicle.getParamInt("SERVO9_MAX", 1900).toString() : "1900"
+                        placeholderTextColor: "#7f8c8d"
+                        validator: IntValidator { bottom: 0; top: 3000 }
 
-                    Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
-                        TextField {
-                            id: servo2Field
-                            anchors.fill: parent
-                            anchors.margins: 2
-
-                            color: "black"
-                            font.pixelSize: 14
-
-                            placeholderText: "e.g. 10"
-                            placeholderTextColor: "#7f8c8d"
-
-                            background: Rectangle {
-                                radius: 6
-                                color: "#ecf0f1"
-                                border.color: "#bdc3c7"
-                            }
-                        }
-                    }
-                }
-
-                Row {
-                    spacing: 10
-
-                    Text {
-                        text: "Servo 3 (AUX)"
-                        color: "white"
-                        width: 140
-                    }
-
-                    Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
-                        TextField {
-                            id: servo3Field
-                            anchors.fill: parent
-                            anchors.margins: 2
-
-                            color: "black"
-                            font.pixelSize: 14
-
-                            placeholderText: "e.g. 11"
-                            placeholderTextColor: "#7f8c8d"
-
-                            background: Rectangle {
-                                radius: 6
-                                color: "#ecf0f1"
-                                border.color: "#bdc3c7"
-                            }
-                        }
-
-                    }
-                }
-
-                Row {
-                    spacing: 10
-
-                    Text {
-                        text: "Deploy PWM"
-                        color: "white"
-                        width: 140
-                    }
-
-                    Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
-                        TextField {
-                            id: deployField
-                            anchors.fill: parent
-                            anchors.margins: 2
-
-                            color: "black"
-                            font.pixelSize: 14
-
-                            placeholderText: "e.g. 1900"
-                            placeholderTextColor: "#7f8c8d"
-                            background: Rectangle {
-                                radius: 6
-                                color: "#ecf0f1"
-                                border.color: "#bdc3c7"
-                            }
-                        }
-                    }
-                }
-
-                Row {
-                    spacing: 10
-
-                    Text {
-                        text: "Retract PWM"
-                        color: "white"
-                        width: 140
-                    }
-
-                    Rectangle {
-                        width: 180
-                        height: 32
-                        radius: 6
-                        color: "#ecf0f1"
-
-                        TextField {
-                            id: retractField
-                            anchors.fill: parent
-                            anchors.margins: 2
-
-                            color: "black"
-                            font.pixelSize: 14
-
-                            placeholderText: "e.g. 1100"
-                            placeholderTextColor: "#7f8c8d"
-
-                            background: Rectangle {
-                                radius: 6
-                                color: "#ecf0f1"
-                                border.color: "#bdc3c7"
-                            }
+                        background: Rectangle {
+                            radius: 6
+                            color: "#ecf0f1"
+                            border.color: "#bdc3c7"
                         }
                     }
                 }
             }
 
-            Item { height: 10 }
+            // Servo 2
+            Row {
+                spacing: 8
 
-            // 🔷 Save Button aligned RIGHT
-            Item {
-                width: parent.width
-                height: 30
+                Text {
+                    text: "Servo 2"
+                    color: "white"
+                    width: 64
+                    anchors.verticalCenter: parent.verticalCenter
+                }
 
                 Rectangle {
-                    width: 70
-                    height: 28
+                    width: 115
+                    height: 32
                     radius: 6
-                    color: "transparent"
-                    border.color: "#2ecc71"
-                    border.width: 1
+                    color: "#ecf0f1"
 
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Save"
-                        color: "#2ecc71"
-                        font.pixelSize: 14
-                        font.bold: true
-                    }
-
-                    MouseArea {
+                    TextField {
+                        id: min2Field
                         anchors.fill: parent
-                        onClicked: {
-                            if (QGroundControl.multiVehicleManager.activeVehicle) {
-                                QGroundControl.multiVehicleManager.activeVehicle
-                                    .setServoSettings(
-                                        parseInt(servo1Field.text),
-                                        parseInt(servo2Field.text),
-                                        parseInt(servo3Field.text),
-                                        parseInt(deployField.text),
-                                        parseInt(retractField.text)
-                                    )
-                            }
-                            settingsPopup.close()
+                        anchors.margins: 2
+                        color: "black"
+                        font.pixelSize: 14
+                        placeholderText: vehicle ? vehicle.getParamInt("SERVO10_MIN", 1100).toString() : "1100"
+                        placeholderTextColor: "#7f8c8d"
+                        validator: IntValidator { bottom: 0; top: 3000 }
+
+                        background: Rectangle {
+                            radius: 6
+                            color: "#ecf0f1"
+                            border.color: "#bdc3c7"
                         }
+                    }
+                }
+
+                Rectangle {
+                    width: 115
+                    height: 32
+                    radius: 6
+                    color: "#ecf0f1"
+
+                    TextField {
+                        id: max2Field
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        color: "black"
+                        font.pixelSize: 14
+                        placeholderText: vehicle ? vehicle.getParamInt("SERVO10_MAX", 1900).toString() : "1900"
+                        placeholderTextColor: "#7f8c8d"
+                        validator: IntValidator { bottom: 0; top: 3000 }
+
+                        background: Rectangle {
+                            radius: 6
+                            color: "#ecf0f1"
+                            border.color: "#bdc3c7"
+                        }
+                    }
+                }
+            }
+
+            // Servo 3
+            Row {
+                spacing: 8
+
+                Text {
+                    text: "Servo 3"
+                    color: "white"
+                    width: 64
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Rectangle {
+                    width: 115
+                    height: 32
+                    radius: 6
+                    color: "#ecf0f1"
+
+                    TextField {
+                        id: min3Field
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        color: "black"
+                        font.pixelSize: 14
+                        placeholderText: vehicle ? vehicle.getParamInt("SERVO11_MIN", 1100).toString() : "1100"
+                        placeholderTextColor: "#7f8c8d"
+                        validator: IntValidator { bottom: 0; top: 3000 }
+
+                        background: Rectangle {
+                            radius: 6
+                            color: "#ecf0f1"
+                            border.color: "#bdc3c7"
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: 115
+                    height: 32
+                    radius: 6
+                    color: "#ecf0f1"
+
+                    TextField {
+                        id: max3Field
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        color: "black"
+                        font.pixelSize: 14
+                        placeholderText: vehicle ? vehicle.getParamInt("SERVO11_MAX", 1900).toString() : "1900"
+                        placeholderTextColor: "#7f8c8d"
+                        validator: IntValidator { bottom: 0; top: 3000 }
+
+                        background: Rectangle {
+                            radius: 6
+                            color: "#ecf0f1"
+                            border.color: "#bdc3c7"
+                        }
+                    }
+                }
+            }
+        }
+
+        // 🔷 Save Button aligned RIGHT
+        Item {
+            width: parent.width
+            height: 30
+
+            Rectangle {
+                width: 70
+                height: 28
+                radius: 6
+                color: "transparent"
+                border.color: "#2ecc71"
+                border.width: 1
+
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "Save"
+                    color: "#2ecc71"
+                    font.pixelSize: 14
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (QGroundControl.multiVehicleManager.activeVehicle) {
+                            QGroundControl.multiVehicleManager.activeVehicle
+                                .setServoSettings(
+                                    settingsPopup.servo1Channel,
+                                    settingsPopup.servo2Channel,
+                                    settingsPopup.servo3Channel,
+                                    parseInt(min1Field.text),
+                                    parseInt(max1Field.text),
+                                    parseInt(min2Field.text),
+                                    parseInt(max2Field.text),
+                                    parseInt(min3Field.text),
+                                    parseInt(max3Field.text)
+                                )
+                        }
+                        settingsPopup.close()
                     }
                 }
             }
         }
     }
+}
+
+
 }

@@ -119,11 +119,10 @@ public:
     Q_INVOKABLE void sendRescueStartSearch();
     Q_INVOKABLE void sendGenerateWps(uint16_t length);
     Q_INVOKABLE void deployLifebuoy(bool deploy);
-    Q_INVOKABLE void setServoSettings(int servo1,
-                                    int servo2,
-                                    int servo3,
-                                    int deployPwm,
-                                    int retractPwm);
+    Q_INVOKABLE void setServoSettings(int aux1, int aux2, int aux3,
+                                int min1, int max1,
+                                int min2, int max2,
+                                int min3, int max3);
 
     Q_INVOKABLE int getParamInt(QString param, int defaultValue = 0);
     QGeoCoordinate _homeBeaconCoordinate;
@@ -133,6 +132,30 @@ public:
     float homeBeaconHeading() const { return _homeBeaconHeading; }
 
 private:
+    int _servo1 = 9;
+    int _servo2 = 10;
+    int _servo3 = 11;
+
+    int _servo1MinPWM = 1100;
+    int _servo1MaxPWM = 1900;
+    int _servo2MinPWM = 1100;
+    int _servo2MaxPWM = 1900;
+    int _servo3MinPWM = 1100;
+    int _servo3MaxPWM = 1900;
+
+    // 🔧 Clean config struct (NO Q_OBJECT)
+    // struct ServoConfig {
+    //     int aux1 = 9;
+    //     int aux2 = 10;
+    //     int aux3 = 11;
+    //     int deployPWM = 1900;
+    //     int retractPWM = 1100;
+    // };
+
+    // ServoConfig _servoConfig;
+    void _sendServoCommand(int servo, int pwm);
+
+//  *********** old firmware ************
 
     bool _homeBeaconValid = false;
 
@@ -140,7 +163,6 @@ private:
 
     QTimer _homeBeaconTimeoutTimer;
     void _setParam(const QString& name, float value);
-
 
     VehicleRescueManager* _rescueManager = nullptr;
     bool _safetyOff = false;
