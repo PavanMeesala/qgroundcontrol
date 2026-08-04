@@ -9,6 +9,47 @@ Rectangle {
 
     property var vehicle: QGroundControl.multiVehicleManager.activeVehicle
 
+    // Live per-flight timer. vehicle.hobbsMeter is a LIFETIME accumulated
+    // counter, not a per-flight stopwatch, and Vehicle's real flight timer
+    // (_flightTimer) is private C++ with no public QML property - so this
+    // tracks it independently off the confirmed-real vehicle.armed property.
+    property real _flightStartMs: 0
+    property int  _flightElapsedSec: 0
+
+    function _formatFlightTime(totalSeconds) {
+        var h = Math.floor(totalSeconds / 3600)
+        var m = Math.floor((totalSeconds % 3600) / 60)
+        var s = totalSeconds % 60
+
+        function pad(n) { return (n < 10 ? "0" : "") + n }
+
+        return h > 0 ? (pad(h) + ":" + pad(m) + ":" + pad(s))
+                      : (pad(m) + ":" + pad(s))
+    }
+
+    Connections {
+        target: vehicle
+        function onArmedChanged(armed) {
+            if (armed) {
+                root._flightStartMs = Date.now()
+                root._flightElapsedSec = 0
+                flightTimeTicker.start()
+            } else {
+                root._flightElapsedSec = Math.floor((Date.now() - root._flightStartMs) / 1000)
+                flightTimeTicker.stop()
+            }
+        }
+    }
+
+    Timer {
+        id:       flightTimeTicker
+        interval: 1000
+        repeat:   true
+        onTriggered: {
+            root._flightElapsedSec = Math.floor((Date.now() - root._flightStartMs) / 1000)
+        }
+    }
+
     width: 236
     implicitHeight: contentColumn.implicitHeight + 28
 
@@ -56,13 +97,7 @@ Rectangle {
             InfoItem {
                 icon: "TIME"
                 iconColor: "#4CB6FF"
-                // NOTE: "vehicle.flightTime" never existed - that was wrong
-                // of me to give you without checking. The only confirmed
-                // public flight-duration property is hobbsMeter, but that's
-                // normally a LIFETIME accumulated-hours counter in aviation,
-                // not a per-flight stopwatch. Flagging this rather than
-                // assuming it's what you actually want.
-                value: vehicle ? vehicle.hobbsMeter : "--"
+                value: root._flightStartMs > 0 ? root._formatFlightTime(root._flightElapsedSec) : "--:--"
             }
 
             InfoItem {
@@ -146,37 +181,27 @@ Rectangle {
             columnSpacing: 12
             rowSpacing: 7
 
-            // NOTE: "vehicle.gimbal" never existed - confirmed the real path
-            // is vehicle.gimbalController. However I could NOT confirm
-            // "activeGimbal" is a real property (that was a guess last
-            // time). What IS confirmed from QGC's own source is that
-            // gimbalController.gimbals is a real list, and its items expose
-            // Fact-based absoluteRoll/absolutePitch/absoluteYaw. Using the
-            // first entry in that list instead of gambling on activeGimbal.
-            property var _firstGimbal:
-                vehicle && vehicle.gimbalController && vehicle.gimbalController.gimbals.count > 0 ?
-                vehicle.gimbalController.gimbals.get(0) :
+            // Confirmed against your actual GimbalIndicator.qml source:
+            // gimbalController.activeGimbal IS real, and retracted/yawLock/
+            // absolutePitch/absoluteYaw are all real Fact properties on it.
+            // No absoluteRoll used - your own gimbal indicator never shows
+            // roll either (most gimbals are 2-axis pitch/yaw).
+            property var _activeGimbal:
+                vehicle && vehicle.gimbalController ?
+                vehicle.gimbalController.activeGimbal :
                 null
 
             InfoItem {
                 icon: "GIM"
                 iconColor: "#B56CFF"
 
-                // TODO(confirm): still unverified - only absoluteRoll/Pitch/
-                // Yaw are confirmed Fact names on a gimbal list entry.
-                value: _firstGimbal ? "Active" : "--"
-            }
-
-            Item { }    // empty cell
-
-            InfoItem {
-                icon: "ROLL"
-                iconColor: "#B56CFF"
+                Layout.columnSpan: 2
 
                 value:
-                    _firstGimbal ?
-                    Number(_firstGimbal.absoluteRoll.rawValue).toFixed(1) + "°" :
-                    "--"
+                    parent._activeGimbal ?
+                    (parent._activeGimbal.retracted ? "Retracted" :
+                     (parent._activeGimbal.yawLock ? "Yaw Locked" : "Yaw Follow")) :
+                    "No gimbal"
             }
 
             InfoItem {
@@ -184,8 +209,8 @@ Rectangle {
                 iconColor: "#B56CFF"
 
                 value:
-                    _firstGimbal ?
-                    Number(_firstGimbal.absolutePitch.rawValue).toFixed(1) + "°" :
+                    parent._activeGimbal ?
+                    parent._activeGimbal.absolutePitch.valueString :
                     "--"
             }
 
@@ -194,8 +219,8 @@ Rectangle {
                 iconColor: "#B56CFF"
 
                 value:
-                    _firstGimbal ?
-                    Number(_firstGimbal.absoluteYaw.rawValue).toFixed(1) + "°" :
+                    parent._activeGimbal ?
+                    parent._activeGimbal.absoluteYaw.valueString :
                     "--"
             }
         }
