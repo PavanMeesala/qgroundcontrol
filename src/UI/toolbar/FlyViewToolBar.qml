@@ -16,7 +16,7 @@ Item {
 
     property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
     property bool   _communicationLost: _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
-    property color  _mainStatusBGColor: qgcPal.brandingBlue
+    property color _mainStatusBGColor: "#0915bd"
     property real   _leftRightMargin:   ScreenTools.defaultFontPixelWidth * 0.75
     property var    _guidedController:  globals.guidedControllerFlyView
 
@@ -41,19 +41,13 @@ Item {
                 width:  leftPanelLayout.implicitWidth
                 height: parent.height
 
-                // Gradient background behind Q button and main status indicator
+                // Uniform flat background behind Q button and main status indicator (no gradient)
                 Rectangle {
                     id:         gradientBackground
                     height:     parent.height
                     width:      mainStatusLayout.width
-                    opacity:    qgcPal.windowTransparent.a
-
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0; color: _mainStatusBGColor }
-                        //GradientStop { position: qgcButton.x + qgcButton.width; color: _mainStatusBGColor }
-                        GradientStop { position: 1; color: qgcPal.window }
-                    }
+                    color:      "#0915bd"
+                    opacity:    0.6
                 }
 
                 // Standard toolbar background to the right of the gradient
@@ -61,7 +55,8 @@ Item {
                     anchors.left:   gradientBackground.right
                     anchors.right:  parent.right
                     height:         parent.height
-                    color:          qgcPal.windowTransparent
+                    color: "#0915bd"
+                    opacity: 0.6
                 }
 
                 RowLayout {
@@ -108,8 +103,9 @@ Item {
                 height: parent.height
 
                 Rectangle {
-                    anchors.fill:   parent
-                    color:          qgcPal.windowTransparent
+                    anchors.fill: parent
+                    color: "#0915bd"
+                    opacity: 0.6
                 }
 
                 GuidedActionConfirm {
@@ -128,10 +124,10 @@ Item {
                 height: parent.height
 
                 Rectangle {
-                    anchors.fill:   parent
-                    color:          qgcPal.windowTransparent
+                    anchors.fill: parent
+                    color: "#0915bd"
+                    opacity: 0.6
                 }
-
                 FlyViewToolBarIndicators {
                     id:     flyViewIndicators
                     height: parent.height
@@ -152,7 +148,7 @@ Item {
 
         source: "qrc:/qmlimages/AethOSLogo.png"
 
-        width: ScreenTools.defaultFontPixelHeight * 15
+        width: ScreenTools.defaultFontPixelHeight * 12
         height: ScreenTools.defaultFontPixelHeight * 5
 
         fillMode: Image.PreserveAspectFit

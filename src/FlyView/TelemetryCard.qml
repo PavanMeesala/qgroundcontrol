@@ -3,22 +3,13 @@ import QtQuick.Layouts
 
 import QGroundControl
 import QGroundControl.Controls
+
 Rectangle {
     id: root
 
     property var vehicle: QGroundControl.multiVehicleManager.activeVehicle
 
-    // Self-anchored to the parent's top-left, clearing the toolbar/header.
-    // If the parent that instantiates TelemetryCard already anchors it
-    // explicitly, remove this block and let the parent control placement.
-    anchors {
-        top:  parent.top
-        left: parent.left
-        topMargin:  ScreenTools.toolbarHeight + 12
-        leftMargin: 12
-    }
-
-    width: 220
+    width: 236
     implicitHeight: contentColumn.implicitHeight + 28
 
     radius: 14
@@ -37,7 +28,7 @@ Rectangle {
             margins: 14
         }
 
-        spacing: 8
+        spacing: 12
 
         //---------------------------------------------------
         SectionHeader { text: "FLIGHT" }
@@ -51,25 +42,31 @@ Rectangle {
             rowSpacing: 7
 
             InfoItem {
-                icon: "↑"
+                icon: "ALT"
                 iconColor: "#5DA8FF"
                 value: vehicle ? vehicle.altitudeRelative.valueString + " m" : "--"
             }
 
             InfoItem {
-                icon: "→"
+                icon: "SPD"
                 iconColor: "#5DA8FF"
                 value: vehicle ? vehicle.groundSpeed.valueString + " m/s" : "--"
             }
 
             InfoItem {
-                icon: "⏱"
+                icon: "TIME"
                 iconColor: "#4CB6FF"
-                value: vehicle ? vehicle.flightTime.valueString : "--"
+                // NOTE: "vehicle.flightTime" never existed - that was wrong
+                // of me to give you without checking. The only confirmed
+                // public flight-duration property is hobbsMeter, but that's
+                // normally a LIFETIME accumulated-hours counter in aviation,
+                // not a per-flight stopwatch. Flagging this rather than
+                // assuming it's what you actually want.
+                value: vehicle ? vehicle.hobbsMeter : "--"
             }
 
             InfoItem {
-                icon: "🏠"
+                icon: "HOME"
                 iconColor: "#FFB366"
                 value: vehicle ? vehicle.distanceToHome.valueString + " m" : "--"
             }
@@ -87,7 +84,7 @@ Rectangle {
             rowSpacing: 7
 
             InfoItem {
-                icon: "🔋"
+                icon: "BAT"
                 iconColor: "#8AE34A"
 
                 value:
@@ -97,7 +94,7 @@ Rectangle {
             }
 
             InfoItem {
-                icon: "⚡"
+                icon: "VOLT"
                 iconColor: "#FFD84C"
 
                 value:
@@ -107,7 +104,7 @@ Rectangle {
             }
 
             InfoItem {
-                icon: "🛰"
+                icon: "SAT"
                 iconColor: "#73BFFF"
 
                 value:
@@ -117,7 +114,7 @@ Rectangle {
             }
 
             InfoItem {
-                icon: "📍"
+                icon: "HDOP"
                 iconColor: "#FF6060"
 
                 value:
@@ -127,7 +124,7 @@ Rectangle {
             }
 
             InfoItem {
-                icon: "🌍"
+                icon: "GPS"
                 iconColor: "#58D6A0"
 
                 Layout.columnSpan: 2
@@ -149,53 +146,56 @@ Rectangle {
             columnSpacing: 12
             rowSpacing: 7
 
-            // NOTE: "vehicle.gimbal" never existed - the real path is
-            // vehicle.gimbalController.activeGimbal. This is why mode/roll/
-            // pitch/yaw were always falling through to their fallback values.
-            property var _activeGimbal: vehicle && vehicle.gimbalController ?
-                                             vehicle.gimbalController.activeGimbal :
-                                             null
+            // NOTE: "vehicle.gimbal" never existed - confirmed the real path
+            // is vehicle.gimbalController. However I could NOT confirm
+            // "activeGimbal" is a real property (that was a guess last
+            // time). What IS confirmed from QGC's own source is that
+            // gimbalController.gimbals is a real list, and its items expose
+            // Fact-based absoluteRoll/absolutePitch/absoluteYaw. Using the
+            // first entry in that list instead of gambling on activeGimbal.
+            property var _firstGimbal:
+                vehicle && vehicle.gimbalController && vehicle.gimbalController.gimbals.count > 0 ?
+                vehicle.gimbalController.gimbals.get(0) :
+                null
 
             InfoItem {
-                icon: "🎥"
+                icon: "GIM"
                 iconColor: "#B56CFF"
 
-                // TODO(confirm): couldn't verify a "mode" string on the
-                // Gimbal object from source - only absoluteRoll/Pitch/Yaw
-                // are confirmed. Flagging rather than guessing; swap this
-                // for the real property once confirmed (e.g. yawLock).
-                value: _activeGimbal ? "Active" : "--"
+                // TODO(confirm): still unverified - only absoluteRoll/Pitch/
+                // Yaw are confirmed Fact names on a gimbal list entry.
+                value: _firstGimbal ? "Active" : "--"
             }
 
             Item { }    // empty cell
 
             InfoItem {
-                icon: "⤴"
+                icon: "ROLL"
                 iconColor: "#B56CFF"
 
                 value:
-                    _activeGimbal ?
-                    Number(_activeGimbal.absoluteRoll.rawValue).toFixed(1) + "°" :
+                    _firstGimbal ?
+                    Number(_firstGimbal.absoluteRoll.rawValue).toFixed(1) + "°" :
                     "--"
             }
 
             InfoItem {
-                icon: "↕"
+                icon: "PITCH"
                 iconColor: "#B56CFF"
 
                 value:
-                    _activeGimbal ?
-                    Number(_activeGimbal.absolutePitch.rawValue).toFixed(1) + "°" :
+                    _firstGimbal ?
+                    Number(_firstGimbal.absolutePitch.rawValue).toFixed(1) + "°" :
                     "--"
             }
 
             InfoItem {
-                icon: "↺"
+                icon: "YAW"
                 iconColor: "#B56CFF"
 
                 value:
-                    _activeGimbal ?
-                    Number(_activeGimbal.absoluteYaw.rawValue).toFixed(1) + "°" :
+                    _firstGimbal ?
+                    Number(_firstGimbal.absoluteYaw.rawValue).toFixed(1) + "°" :
                     "--"
             }
         }
@@ -212,7 +212,7 @@ Rectangle {
             rowSpacing: 7
 
             InfoItem {
-                icon: "🚢"
+                icon: "BCN"
                 iconColor: "#FF9C43"
 
                 value:
@@ -222,7 +222,7 @@ Rectangle {
             }
 
             InfoItem {
-                icon: "🧭"
+                icon: "HDG"
                 iconColor: "#FF9C43"
 
                 value:
@@ -232,7 +232,7 @@ Rectangle {
             }
 
             InfoItem {
-                icon: "📡"
+                icon: "DIST"
                 iconColor: "#FF9C43"
 
                 Layout.columnSpan: 2

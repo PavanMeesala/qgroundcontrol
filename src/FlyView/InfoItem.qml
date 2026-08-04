@@ -19,7 +19,7 @@ Item {
 
         Text {
 
-            width: 32
+            width: 38
 
             anchors.verticalCenter: parent.verticalCenter
 
@@ -27,14 +27,16 @@ Item {
 
             color: iconColor
 
-            font.pixelSize: ScreenTools.defaultFontPixelHeight
+            font.pixelSize: 10
+            font.bold: true
+            font.letterSpacing: 0.5
 
-            horizontalAlignment: Text.AlignHCenter
+            horizontalAlignment: Text.AlignLeft
         }
 
         Text {
 
-            width: parent.width - 18 - 6
+            width: parent.width - 38 - 6
 
             anchors.verticalCenter: parent.verticalCenter
 
@@ -42,7 +44,7 @@ Item {
 
             color: "#F2F6FA"
 
-            font.pixelSize: ScreenTools.defaultFontPixelHeight
+            font.pixelSize: 12
             font.bold: true
 
             elide: Text.ElideRight
